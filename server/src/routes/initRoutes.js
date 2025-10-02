@@ -4,7 +4,7 @@ import pool from '../config/database.js';
 const router = express.Router();
 
 // Initialization endpoint - call this once to setup database
-router.post('/initialize', async (req, res) => {
+router.get('/initialize', async (req, res) => {
   try {
     // Create properties table
     await pool.query(`
