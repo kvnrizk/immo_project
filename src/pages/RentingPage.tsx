@@ -5,36 +5,14 @@ import PropertyCard from '@/components/PropertyCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
+import { useProperties } from '@/hooks/useProperties';
 
 const RentingPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [priceRange, setPriceRange] = useState('tous');
 
-  // Properties for rent
-  const rentingProperties = [
-    {
-      id: 2,
-      title: "Maison familiale avec jardin",
-      price: "1 200 €/mois",
-      location: "Villeurbanne",
-      type: "location" as const,
-      image: "https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=800&q=80",
-      description: "Belle maison de 120m² avec jardin privatif, idéale pour une famille.",
-      bedrooms: 4,
-      area: 120
-    },
-    {
-      id: 5,
-      title: "Appartement T3 lumineux",
-      price: "950 €/mois",
-      location: "Caluire-et-Cuire",
-      type: "location" as const,
-      image: "https://images.unsplash.com/photo-1551038247-3d9af20df552?auto=format&fit=crop&w=800&q=80",
-      description: "T3 de 70m² avec balcon et vue dégagée, dans résidence récente avec parking.",
-      bedrooms: 2,
-      area: 70
-    }
-  ];
+  // Fetch properties for rent from API
+  const { properties, loading, error } = useProperties('location');
 
   const priceRanges = [
     { key: 'tous', label: 'Tous les prix' },
@@ -43,16 +21,38 @@ const RentingPage = () => {
     { key: '1200+', label: 'Plus de 1200€' }
   ];
 
-  const filteredProperties = rentingProperties.filter(property => {
+  const filteredProperties = (properties || []).filter(property => {
     const matchesSearch = property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          property.location.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesSearch;
   });
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="pt-20 flex items-center justify-center">
+          <p className="text-muted-foreground">Chargement des propriétés...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="pt-20 flex items-center justify-center">
+          <p className="text-red-500">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      
+
       <div className="pt-20 pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">

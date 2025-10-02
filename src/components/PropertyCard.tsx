@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { MessageCircle } from 'lucide-react';
 
 interface PropertyCardProps {
   id: number;
@@ -56,9 +57,23 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
     }
   };
 
-  const handleContact = (e: React.MouseEvent) => {
+  const handleWhatsApp = (e: React.MouseEvent) => {
     e.stopPropagation();
-    navigate('/contact');
+
+    // Your WhatsApp number - CHANGE THIS TO YOUR NUMBER
+    // Format: Country code + number (no spaces, no + sign)
+    // Example: For France +33 6 12 34 56 78, use: 33612345678
+    const whatsappNumber = '33628676124'; // ⬅️ PUT YOUR WHATSAPP NUMBER HERE
+
+    // Create the property URL
+    const propertyUrl = `${window.location.origin}/property/${id}`;
+
+    // Create WhatsApp message
+    const message = `Bonjour, je suis intéressé(e) par cette propriété:\n\n${title}\n${location}\nPrix: ${price}\n\nLien: ${propertyUrl}`;
+
+    // Open WhatsApp with pre-filled message
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
   };
 
   const handleViewDetails = () => {
@@ -107,15 +122,16 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
             {price}
           </div>
           <div className="flex gap-2">
-            <Button 
-              onClick={handleContact}
+            <Button
+              onClick={handleWhatsApp}
               variant="outline"
               size="sm"
-              className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+              className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
             >
-              Contacter
+              <MessageCircle className="w-4 h-4 mr-1" />
+              WhatsApp
             </Button>
-            <Button 
+            <Button
               onClick={handleViewDetails}
               size="sm"
               className="bg-primary hover:bg-primary/90 text-primary-foreground"

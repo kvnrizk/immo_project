@@ -16,26 +16,34 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({ unavailable
   const [selectedDate, setSelectedDate] = useState<Date>();
   const navigate = useNavigate();
 
+  const isSameDay = (date1: Date, date2: Date) => {
+    return (
+      date1.getFullYear() === date2.getFullYear() &&
+      date1.getMonth() === date2.getMonth() &&
+      date1.getDate() === date2.getDate()
+    );
+  };
+
   const handleDateSelect = (date: Date | undefined) => {
     if (!date) return;
-    
+
     // Check if the selected date is unavailable
-    const isUnavailable = unavailableDates.some(unavailableDate => 
-      unavailableDate.getTime() === date.getTime()
+    const isUnavailable = unavailableDates.some(unavailableDate =>
+      isSameDay(unavailableDate, date)
     );
-    
+
     if (isUnavailable) {
       // Redirect to contact page if date is unavailable
       navigate('/contact');
       return;
     }
-    
+
     setSelectedDate(date);
   };
 
   const isDateDisabled = (date: Date) => {
-    return unavailableDates.some(unavailableDate => 
-      unavailableDate.getTime() === date.getTime()
+    return unavailableDates.some(unavailableDate =>
+      isSameDay(unavailableDate, date)
     );
   };
 
@@ -73,7 +81,7 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({ unavailable
             </div>
           )}
           <p className="text-xs text-muted-foreground mt-2">
-            * Les dates en gris ne sont pas disponibles. Cliquez dessus pour nous contacter.
+            * Les dates barrées et floues sont déjà réservées. Cliquez dessus pour nous contacter.
           </p>
         </CardContent>
       </Card>

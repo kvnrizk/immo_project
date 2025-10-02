@@ -9,15 +9,26 @@ import PropertyImages from '@/components/property/PropertyImages';
 import PropertyInfo from '@/components/property/PropertyInfo';
 import AvailabilityCalendar from '@/components/property/AvailabilityCalendar';
 import ContactCard from '@/components/property/ContactCard';
-import { properties, unavailableDates } from '@/data/PropertyData';
+import { useProperty, useUnavailableDates } from '@/hooks/useProperties';
 
 const PropertyDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { property, loading, error } = useProperty(Number(id));
+  const { dates: unavailableDates } = useUnavailableDates(Number(id));
 
-  const property = properties.find(p => p.id === Number(id));
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Navigation />
+        <div className="text-center pt-20">
+          <p className="text-muted-foreground">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
 
-  if (!property) {
+  if (error || !property) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Navigation />

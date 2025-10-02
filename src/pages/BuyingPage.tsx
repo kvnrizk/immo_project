@@ -5,36 +5,14 @@ import PropertyCard from '@/components/PropertyCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
+import { useProperties } from '@/hooks/useProperties';
 
 const BuyingPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [priceRange, setPriceRange] = useState('tous');
 
-  // Properties for sale
-  const buyingProperties = [
-    {
-      id: 1,
-      title: "Appartement moderne centre-ville",
-      price: "285 000 €",
-      location: "Lyon 6ème",
-      type: "vente" as const,
-      image: "https://images.unsplash.com/photo-1721322800607-8c38375eef04?auto=format&fit=crop&w=800&q=80",
-      description: "Magnifique appartement de 85m² entièrement rénové avec goût, proche des commodités.",
-      bedrooms: 3,
-      area: 85
-    },
-    {
-      id: 4,
-      title: "Loft industriel",
-      price: "520 000 €",
-      location: "Lyon 7ème",
-      type: "vente" as const,
-      image: "https://images.unsplash.com/photo-1487958449943-2429e8be8625?auto=format&fit=crop&w=800&q=80",
-      description: "Loft unique de 150m² avec vue exceptionnelle, dans un quartier en pleine expansion.",
-      bedrooms: 2,
-      area: 150
-    }
-  ];
+  // Fetch properties for sale from API
+  const { properties, loading, error } = useProperties('vente');
 
   const priceRanges = [
     { key: 'tous', label: 'Tous les prix' },
@@ -43,11 +21,33 @@ const BuyingPage = () => {
     { key: '500000+', label: 'Plus de 500 000€' }
   ];
 
-  const filteredProperties = buyingProperties.filter(property => {
+  const filteredProperties = (properties || []).filter(property => {
     const matchesSearch = property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          property.location.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesSearch;
   });
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="pt-20 flex items-center justify-center">
+          <p className="text-muted-foreground">Chargement des propriétés...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="pt-20 flex items-center justify-center">
+          <p className="text-red-500">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">

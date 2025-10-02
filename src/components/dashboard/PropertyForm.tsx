@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,29 +7,93 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Save, X } from 'lucide-react';
+import { propertyAPI } from '@/services/api';
+import { useToast } from '@/hooks/use-toast';
+import { Property } from '@/data/PropertyData';
 
 interface PropertyFormProps {
+  property?: Property | null;
   onSave: () => void;
   onCancel: () => void;
 }
 
-const PropertyForm = ({ onSave, onCancel }: PropertyFormProps) => {
+const PropertyForm = ({ property, onSave, onCancel }: PropertyFormProps) => {
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
-    address: '',
+    location: '',
     type: '',
     bedrooms: '',
     area: '',
     price: '',
     description: '',
-    amenities: ''
+    features: '',
+    image: '',
+    images: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (property) {
+      setFormData({
+        title: property.title || '',
+        location: property.location || '',
+        type: property.type || '',
+        bedrooms: property.bedrooms?.toString() || '',
+        area: property.area?.toString() || '',
+        price: property.price || '',
+        description: property.description || '',
+        features: Array.isArray(property.features) ? property.features.join(', ') : '',
+        image: property.image || '',
+        images: Array.isArray(property.images) ? property.images.join(', ') : ''
+      });
+    }
+  }, [property]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would save the property data
-    console.log('Saving property:', formData);
-    onSave();
+    setLoading(true);
+
+    try {
+      const propertyData = {
+        title: formData.title,
+        location: formData.location,
+        type: formData.type,
+        bedrooms: parseInt(formData.bedrooms) || 0,
+        area: parseInt(formData.area) || 0,
+        price: formData.price,
+        description: formData.description,
+        features: formData.features.split(',').map(f => f.trim()).filter(f => f),
+        image: formData.image || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80',
+        images: formData.images ? formData.images.split(',').map(i => i.trim()).filter(i => i) : []
+      };
+
+      if (property?.id) {
+        // Update existing property
+        await propertyAPI.update(property.id, propertyData);
+        toast({
+          title: "Succès",
+          description: "Propriété modifiée avec succès",
+        });
+      } else {
+        // Create new property
+        await propertyAPI.create(propertyData);
+        toast({
+          title: "Succès",
+          description: "Propriété créée avec succès",
+        });
+      }
+
+      onSave();
+    } catch (err) {
+      toast({
+        title: "Erreur",
+        description: property?.id ? "Impossible de modifier la propriété" : "Impossible de créer la propriété",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -39,7 +103,7 @@ const PropertyForm = ({ onSave, onCancel }: PropertyFormProps) => {
   return (
     <Card className="max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle>Ajouter une nouvelle propriété</CardTitle>
+        <CardTitle>{property ? 'Modifier la propriété' : 'Ajouter une nouvelle propriété'}</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -62,21 +126,20 @@ const PropertyForm = ({ onSave, onCancel }: PropertyFormProps) => {
                   <SelectValue placeholder="Sélectionner un type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="appartement">Appartement</SelectItem>
-                  <SelectItem value="studio">Studio</SelectItem>
-                  <SelectItem value="loft">Loft</SelectItem>
-                  <SelectItem value="maison">Maison</SelectItem>
+                  <SelectItem value="vente">À vendre</SelectItem>
+                  <SelectItem value="location">À louer</SelectItem>
+                  <SelectItem value="saisonnier">Location court durée</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="address">Adresse complète *</Label>
+            <Label htmlFor="location">Adresse complète *</Label>
             <Input
-              id="address"
-              value={formData.address}
-              onChange={(e) => handleInputChange('address', e.target.value)}
+              id="location"
+              value={formData.location}
+              onChange={(e) => handleInputChange('location', e.target.value)}
               placeholder="Ex: 15 Rue des Rosiers, 75004 Paris"
               required
             />
@@ -108,14 +171,12 @@ const PropertyForm = ({ onSave, onCancel }: PropertyFormProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="price">Prix par nuit (€) *</Label>
+              <Label htmlFor="price">Prix *</Label>
               <Input
                 id="price"
-                type="number"
                 value={formData.price}
                 onChange={(e) => handleInputChange('price', e.target.value)}
-                placeholder="120"
-                min="0"
+                placeholder="250 000€ ou 1 200€/mois"
                 required
               />
             </div>
@@ -133,24 +194,45 @@ const PropertyForm = ({ onSave, onCancel }: PropertyFormProps) => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="amenities">Équipements</Label>
+            <Label htmlFor="features">Équipements (séparés par des virgules)</Label>
             <Textarea
-              id="amenities"
-              value={formData.amenities}
-              onChange={(e) => handleInputChange('amenities', e.target.value)}
-              placeholder="Wi-Fi, Cuisine équipée, Balcon, etc."
+              id="features"
+              value={formData.features}
+              onChange={(e) => handleInputChange('features', e.target.value)}
+              placeholder="Wi-Fi, Cuisine équipée, Balcon, Parking"
               rows={3}
             />
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="image">Image principale (URL)</Label>
+            <Input
+              id="image"
+              value={formData.image}
+              onChange={(e) => handleInputChange('image', e.target.value)}
+              placeholder="https://example.com/image.jpg"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="images">Autres images (URLs séparées par des virgules)</Label>
+            <Textarea
+              id="images"
+              value={formData.images}
+              onChange={(e) => handleInputChange('images', e.target.value)}
+              placeholder="https://example.com/img1.jpg, https://example.com/img2.jpg"
+              rows={2}
+            />
+          </div>
+
           <div className="flex justify-end space-x-4">
-            <Button type="button" variant="outline" onClick={onCancel}>
+            <Button type="button" variant="outline" onClick={onCancel} disabled={loading}>
               <X className="w-4 h-4 mr-2" />
               Annuler
             </Button>
-            <Button type="submit">
+            <Button type="submit" disabled={loading}>
               <Save className="w-4 h-4 mr-2" />
-              Enregistrer
+              {loading ? 'Enregistrement...' : 'Enregistrer'}
             </Button>
           </div>
         </form>

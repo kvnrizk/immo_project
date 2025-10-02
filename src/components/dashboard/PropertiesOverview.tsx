@@ -1,22 +1,13 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Eye, Calendar, MapPin, Bed, Square } from 'lucide-react';
-
-interface Property {
-  id: number;
-  title: string;
-  address: string;
-  type: string;
-  bedrooms: number;
-  area: number;
-  price: number;
-  status: 'available' | 'occupied' | 'maintenance';
-  image: string;
-  nextBooking?: string;
-}
+import { Edit, Eye, Calendar, MapPin, Bed, Square, Trash2 } from 'lucide-react';
+import { useProperties } from '@/hooks/useProperties';
+import { propertyAPI } from '@/services/api';
+import { Property } from '@/data/PropertyData';
+import { useToast } from '@/hooks/use-toast';
 
 interface PropertiesOverviewProps {
   onSelectProperty: (property: Property) => void;
@@ -24,70 +15,51 @@ interface PropertiesOverviewProps {
 }
 
 const PropertiesOverview = ({ onSelectProperty, onEditProperty }: PropertiesOverviewProps) => {
-  // Mock data - will be replaced with real data from backend
-  const [properties] = useState<Property[]>([
-    {
-      id: 1,
-      title: "Appartement Marais",
-      address: "15 Rue des Rosiers, 75004 Paris",
-      type: "Appartement",
-      bedrooms: 2,
-      area: 65,
-      price: 120,
-      status: 'available',
-      image: "https://images.unsplash.com/photo-1721322800607-8c38375eef04?auto=format&fit=crop&w=400&q=80",
-      nextBooking: "2024-07-15"
-    },
-    {
-      id: 2,
-      title: "Studio Montmartre",
-      address: "8 Place du Tertre, 75018 Paris",
-      type: "Studio",
-      bedrooms: 1,
-      area: 35,
-      price: 85,
-      status: 'occupied',
-      image: "https://images.unsplash.com/photo-1524230572899-a752b3835840?auto=format&fit=crop&w=400&q=80",
-      nextBooking: "2024-07-20"
-    },
-    {
-      id: 3,
-      title: "Loft Saint-Germain",
-      address: "22 Rue de Seine, 75006 Paris",
-      type: "Loft",
-      bedrooms: 3,
-      area: 95,
-      price: 180,
-      status: 'maintenance',
-      image: "https://images.unsplash.com/photo-1487958449943-2429e8be8625?auto=format&fit=crop&w=400&q=80"
-    }
-  ]);
+  const { properties, loading, error } = useProperties();
+  const { toast } = useToast();
+  const [localProperties, setLocalProperties] = useState<Property[]>([]);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'available':
-        return 'bg-green-100 text-green-800';
-      case 'occupied':
-        return 'bg-blue-100 text-blue-800';
-      case 'maintenance':
-        return 'bg-orange-100 text-orange-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+  useEffect(() => {
+    if (properties) {
+      setLocalProperties(properties);
+    }
+  }, [properties]);
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette propriété ?')) return;
+
+    try {
+      await propertyAPI.delete(id);
+      setLocalProperties(prev => prev.filter(p => p.id !== id));
+      toast({
+        title: "Succès",
+        description: "Propriété supprimée avec succès",
+      });
+    } catch (err) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer la propriété",
+        variant: "destructive",
+      });
     }
   };
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'available':
-        return 'Disponible';
-      case 'occupied':
-        return 'Occupé';
-      case 'maintenance':
-        return 'Maintenance';
-      default:
-        return status;
-    }
+  const getTypeLabel = (type: string) => {
+    const labels: Record<string, string> = {
+      'vente': 'À vendre',
+      'location': 'À louer',
+      'saisonnier': 'Location courte durée'
+    };
+    return labels[type] || type;
   };
+
+  if (loading) {
+    return <div className="text-center py-12">Chargement des propriétés...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center py-12 text-red-500">{error}</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -98,7 +70,7 @@ const PropertiesOverview = ({ onSelectProperty, onEditProperty }: PropertiesOver
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Propriétés</p>
-                <p className="text-2xl font-bold">{properties.length}</p>
+                <p className="text-2xl font-bold">{localProperties.length}</p>
               </div>
               <div className="h-8 w-8 bg-primary/10 rounded-full flex items-center justify-center">
                 <MapPin className="h-4 w-4 text-primary" />
@@ -111,9 +83,9 @@ const PropertiesOverview = ({ onSelectProperty, onEditProperty }: PropertiesOver
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Disponibles</p>
+                <p className="text-sm font-medium text-muted-foreground">À vendre</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {properties.filter(p => p.status === 'available').length}
+                  {localProperties.filter(p => p.type === 'vente').length}
                 </p>
               </div>
               <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
@@ -127,9 +99,9 @@ const PropertiesOverview = ({ onSelectProperty, onEditProperty }: PropertiesOver
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Occupées</p>
+                <p className="text-sm font-medium text-muted-foreground">À louer</p>
                 <p className="text-2xl font-bold text-blue-600">
-                  {properties.filter(p => p.status === 'occupied').length}
+                  {localProperties.filter(p => p.type === 'location').length}
                 </p>
               </div>
               <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
@@ -143,9 +115,9 @@ const PropertiesOverview = ({ onSelectProperty, onEditProperty }: PropertiesOver
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Revenue/mois</p>
+                <p className="text-sm font-medium text-muted-foreground">Saisonnier</p>
                 <p className="text-2xl font-bold text-primary">
-                  {properties.reduce((sum, p) => sum + p.price, 0)}€
+                  {localProperties.filter(p => p.type === 'saisonnier').length}
                 </p>
               </div>
               <div className="h-8 w-8 bg-primary/10 rounded-full flex items-center justify-center">
@@ -158,16 +130,16 @@ const PropertiesOverview = ({ onSelectProperty, onEditProperty }: PropertiesOver
 
       {/* Properties Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {properties.map((property) => (
+        {localProperties.map((property) => (
           <Card key={property.id} className="hover:shadow-lg transition-shadow">
             <div className="relative">
               <img
-                src={property.image}
+                src={property.image || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=400&q=80'}
                 alt={property.title}
                 className="w-full h-48 object-cover rounded-t-lg"
               />
-              <Badge className={`absolute top-3 right-3 ${getStatusColor(property.status)}`}>
-                {getStatusLabel(property.status)}
+              <Badge className="absolute top-3 right-3 bg-primary text-primary-foreground">
+                {getTypeLabel(property.type)}
               </Badge>
             </div>
 
@@ -175,7 +147,7 @@ const PropertiesOverview = ({ onSelectProperty, onEditProperty }: PropertiesOver
               <CardTitle className="text-lg">{property.title}</CardTitle>
               <p className="text-sm text-muted-foreground flex items-center">
                 <MapPin className="w-4 h-4 mr-1" />
-                {property.address}
+                {property.location}
               </p>
             </CardHeader>
 
@@ -190,33 +162,34 @@ const PropertiesOverview = ({ onSelectProperty, onEditProperty }: PropertiesOver
                   {property.area} m²
                 </span>
                 <span className="font-semibold text-primary">
-                  {property.price}€/nuit
+                  {property.price}
                 </span>
               </div>
 
-              {property.nextBooking && (
-                <p className="text-xs text-muted-foreground">
-                  Prochaine réservation: {property.nextBooking}
-                </p>
-              )}
-
               <div className="flex space-x-2">
-                <Button 
-                  size="sm" 
-                  variant="outline" 
+                <Button
+                  size="sm"
+                  variant="outline"
                   className="flex-1"
                   onClick={() => onSelectProperty(property)}
                 >
                   <Eye className="w-4 h-4 mr-1" />
                   Voir
                 </Button>
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   className="flex-1"
                   onClick={() => onEditProperty(property)}
                 >
                   <Edit className="w-4 h-4 mr-1" />
                   Modifier
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => handleDelete(property.id)}
+                >
+                  <Trash2 className="w-4 h-4" />
                 </Button>
               </div>
             </CardContent>

@@ -1,71 +1,84 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { BookOpen, Search, Calendar, User, MapPin, Euro } from 'lucide-react';
+import { bookingAPI } from '@/services/api';
+import { useToast } from '@/hooks/use-toast';
 
 interface Booking {
   id: number;
-  propertyTitle: string;
-  guestName: string;
-  checkIn: string;
-  checkOut: string;
-  nights: number;
-  totalPrice: number;
-  status: 'confirmed' | 'pending' | 'cancelled';
-  source: 'airbnb' | 'direct' | 'booking.com';
-  phone: string;
-  email: string;
+  property_id: number;
+  client_name: string;
+  client_email: string;
+  client_phone: string;
+  start_date: string;
+  end_date: string;
+  guests: number;
+  total_price: string;
+  status: string;
+  notes?: string;
+  created_at: string;
 }
 
 const BookingsManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  // Mock bookings data
-  const [bookings] = useState<Booking[]>([
-    {
-      id: 1,
-      propertyTitle: "Appartement Marais",
-      guestName: "Marie Dubois",
-      checkIn: "2024-07-15",
-      checkOut: "2024-07-18",
-      nights: 3,
-      totalPrice: 360,
-      status: 'confirmed',
-      source: 'airbnb',
-      phone: "+33 6 12 34 56 78",
-      email: "marie.dubois@email.com"
-    },
-    {
-      id: 2,
-      propertyTitle: "Studio Montmartre",
-      guestName: "Pierre Martin",
-      checkIn: "2024-07-20",
-      checkOut: "2024-07-22",
-      nights: 2,
-      totalPrice: 170,
-      status: 'confirmed',
-      source: 'direct',
-      phone: "+33 6 87 65 43 21",
-      email: "pierre.martin@email.com"
-    },
-    {
-      id: 3,
-      propertyTitle: "Loft Saint-Germain",
-      guestName: "Sophie Wilson",
-      checkIn: "2024-07-25",
-      checkOut: "2024-07-30",
-      nights: 5,
-      totalPrice: 900,
-      status: 'pending',
-      source: 'booking.com',
-      phone: "+44 20 1234 5678",
-      email: "sophie.wilson@email.com"
+  useEffect(() => {
+    fetchBookings();
+  }, []);
+
+  const fetchBookings = async () => {
+    try {
+      setLoading(true);
+      const data = await bookingAPI.getAll();
+      setBookings(data);
+    } catch (err) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les réservations",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
+
+  const handleCancelBooking = async (id: number) => {
+    if (!confirm('Êtes-vous sûr de vouloir annuler cette réservation ?')) return;
+
+    try {
+      await bookingAPI.cancel(id);
+      setBookings(prev =>
+        prev.map(booking =>
+          booking.id === id ? { ...booking, status: 'cancelled' } : booking
+        )
+      );
+      toast({
+        title: "Succès",
+        description: "Réservation annulée",
+      });
+    } catch (err) {
+      toast({
+        title: "Erreur",
+        description: "Impossible d'annuler la réservation",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const calculateNights = (start: string, end: string) => {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -80,28 +93,19 @@ const BookingsManagement = () => {
     }
   };
 
-  const getSourceColor = (source: string) => {
-    switch (source) {
-      case 'airbnb':
-        return 'bg-red-100 text-red-800';
-      case 'direct':
-        return 'bg-blue-100 text-blue-800';
-      case 'booking.com':
-        return 'bg-purple-100 text-purple-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   const filteredBookings = bookings.filter(booking => {
-    const matchesSearch = booking.guestName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         booking.propertyTitle.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = booking.client_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         booking.client_email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === 'all' || booking.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
 
-  const totalRevenue = bookings.reduce((sum, booking) => sum + booking.totalPrice, 0);
+  const totalRevenue = bookings.reduce((sum, booking) => sum + parseFloat(booking.total_price || '0'), 0);
   const confirmedBookings = bookings.filter(b => b.status === 'confirmed').length;
+
+  if (loading) {
+    return <div className="text-center py-12">Chargement des réservations...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -187,57 +191,62 @@ const BookingsManagement = () => {
 
       {/* Bookings List */}
       <div className="space-y-4">
-        {filteredBookings.map((booking) => (
-          <Card key={booking.id} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-lg">{booking.guestName}</h3>
-                    <Badge className={getStatusColor(booking.status)}>
-                      {booking.status === 'confirmed' ? 'Confirmée' : 
-                       booking.status === 'pending' ? 'En attente' : 'Annulée'}
-                    </Badge>
-                    <Badge className={getSourceColor(booking.source)} variant="outline">
-                      {booking.source}
-                    </Badge>
-                  </div>
-                  
-                  <div className="flex items-center text-sm text-muted-foreground gap-4">
-                    <span className="flex items-center">
-                      <MapPin className="w-4 h-4 mr-1" />
-                      {booking.propertyTitle}
-                    </span>
-                    <span className="flex items-center">
-                      <Calendar className="w-4 h-4 mr-1" />
-                      {booking.checkIn} - {booking.checkOut} ({booking.nights} nuits)
-                    </span>
-                    <span className="flex items-center">
-                      <User className="w-4 h-4 mr-1" />
-                      {booking.email}
-                    </span>
-                  </div>
-                </div>
+        {filteredBookings.map((booking) => {
+          const nights = calculateNights(booking.start_date, booking.end_date);
+          return (
+            <Card key={booking.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-lg">{booking.client_name}</h3>
+                      <Badge className={getStatusColor(booking.status)}>
+                        {booking.status === 'confirmed' ? 'Confirmée' :
+                         booking.status === 'pending' ? 'En attente' : 'Annulée'}
+                      </Badge>
+                    </div>
 
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <p className="text-2xl font-bold text-primary">{booking.totalPrice}€</p>
-                    <p className="text-sm text-muted-foreground">{booking.phone}</p>
+                    <div className="flex flex-wrap items-center text-sm text-muted-foreground gap-4">
+                      <span className="flex items-center">
+                        <Calendar className="w-4 h-4 mr-1" />
+                        {new Date(booking.start_date).toLocaleDateString('fr-FR')} - {new Date(booking.end_date).toLocaleDateString('fr-FR')} ({nights} nuits)
+                      </span>
+                      <span className="flex items-center">
+                        <User className="w-4 h-4 mr-1" />
+                        {booking.client_email}
+                      </span>
+                      <span className="flex items-center">
+                        {booking.guests} invité{booking.guests > 1 ? 's' : ''}
+                      </span>
+                    </div>
+                    {booking.notes && (
+                      <p className="text-sm text-muted-foreground italic">Note: {booking.notes}</p>
+                    )}
                   </div>
-                  
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm">
-                      Voir détails
-                    </Button>
-                    <Button size="sm">
-                      Contacter
-                    </Button>
+
+                  <div className="flex items-center gap-4">
+                    <div className="text-right">
+                      <p className="text-2xl font-bold text-primary">{booking.total_price}</p>
+                      <p className="text-sm text-muted-foreground">{booking.client_phone}</p>
+                    </div>
+
+                    <div className="flex gap-2">
+                      {booking.status !== 'cancelled' && (
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleCancelBooking(booking.id)}
+                        >
+                          Annuler
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {filteredBookings.length === 0 && (

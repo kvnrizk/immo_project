@@ -5,36 +5,14 @@ import PropertyCard from '@/components/PropertyCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
+import { useProperties } from '@/hooks/useProperties';
 
 const ShortTermPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [priceRange, setPriceRange] = useState('tous');
 
-  // Properties for short-term rental
-  const shortTermProperties = [
-    {
-      id: 3,
-      title: "Studio cosy Airbnb",
-      price: "75 €/nuit",
-      location: "Lyon 2ème",
-      type: "saisonnier" as const,
-      image: "https://images.unsplash.com/photo-1524230572899-a752b3835840?auto=format&fit=crop&w=800&q=80",
-      description: "Studio parfaitement équipé en plein cœur de Lyon, idéal pour les voyageurs d'affaires.",
-      bedrooms: 1,
-      area: 35
-    },
-    {
-      id: 6,
-      title: "Appartement de charme",
-      price: "90 €/nuit",
-      location: "Lyon 5ème",
-      type: "saisonnier" as const,
-      image: "https://images.unsplash.com/photo-1493397212122-2b85dda8106b?auto=format&fit=crop&w=800&q=80",
-      description: "Appartement de caractère dans le Vieux Lyon, décoré avec raffinement pour vos séjours.",
-      bedrooms: 2,
-      area: 60
-    }
-  ];
+  // Fetch properties for short-term rental from API
+  const { properties, loading, error } = useProperties('saisonnier');
 
   const priceRanges = [
     { key: 'tous', label: 'Tous les prix' },
@@ -43,11 +21,33 @@ const ShortTermPage = () => {
     { key: '100+', label: 'Plus de 100€/nuit' }
   ];
 
-  const filteredProperties = shortTermProperties.filter(property => {
+  const filteredProperties = (properties || []).filter(property => {
     const matchesSearch = property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          property.location.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesSearch;
   });
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="pt-20 flex items-center justify-center">
+          <p className="text-muted-foreground">Chargement des propriétés...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="pt-20 flex items-center justify-center">
+          <p className="text-red-500">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
