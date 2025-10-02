@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import propertyRoutes from './routes/propertyRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
+import initRoutes from './routes/initRoutes.js';
 
 dotenv.config();
 
@@ -18,6 +19,11 @@ app.use(cors({
 
     // Allow any localhost origin
     if (origin.startsWith('http://localhost:')) {
+      return callback(null, true);
+    }
+
+    // Allow Render.com domains for production
+    if (origin && origin.includes('.onrender.com')) {
       return callback(null, true);
     }
 
@@ -45,6 +51,7 @@ app.get('/', (req, res) => {
 app.use('/api/properties', propertyRoutes);
 app.use('/api/contacts', contactRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/init', initRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
