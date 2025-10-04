@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MessageCircle } from 'lucide-react';
+import { getImageUrl } from '@/utils/imageUrl';
 
 interface PropertyCardProps {
   id: number;
@@ -87,7 +88,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
     >
       <div className="relative">
         <img
-          src={image}
+          src={getImageUrl(image)}
           alt={title}
           className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
         />

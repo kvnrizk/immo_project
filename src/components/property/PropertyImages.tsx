@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Property } from '@/data/PropertyData';
 import ImageLightbox from './ImageLightbox';
+import { getImageUrl } from '@/utils/imageUrl';
 
 interface PropertyImagesProps {
   property: Property;
@@ -30,7 +31,7 @@ const PropertyImages: React.FC<PropertyImagesProps> = ({
     <div className="space-y-4">
       <div className="relative">
         <img
-          src={property.image}
+          src={getImageUrl(property.image)}
           alt={property.title}
           className="w-full h-96 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
           onClick={() => openLightbox(0)}
@@ -40,7 +41,7 @@ const PropertyImages: React.FC<PropertyImagesProps> = ({
         </Badge>
       </div>
       
-      {property.images && property.images.length > 1 && (
+      {property.images && Array.isArray(property.images) && property.images.length > 1 && (
         <div className="grid grid-cols-2 gap-4">
           {property.images.slice(1).map((img, index) => (
             <img

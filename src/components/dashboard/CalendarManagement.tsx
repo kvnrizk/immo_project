@@ -74,13 +74,15 @@ const CalendarManagement = () => {
 
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5001/api/properties/${selectedPropertyId}/unavailable-dates`, {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      const response = await fetch(`${API_URL}/properties/${selectedPropertyId}/unavailable-dates`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           unavailable_date: format(targetDate, 'yyyy-MM-dd'),
           reason: 'Booked'
-        })
+        }),
+        credentials: 'include'
       });
 
       if (!response.ok) throw new Error('Failed to add unavailable date');
@@ -110,12 +112,14 @@ const CalendarManagement = () => {
 
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5001/api/properties/${selectedPropertyId}/unavailable-dates`, {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      const response = await fetch(`${API_URL}/properties/${selectedPropertyId}/unavailable-dates`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           unavailable_date: format(dateToRemove, 'yyyy-MM-dd')
-        })
+        }),
+        credentials: 'include'
       });
 
       if (!response.ok) throw new Error('Failed to remove unavailable date');
@@ -171,7 +175,7 @@ const CalendarManagement = () => {
                 }`}
               >
                 <img
-                  src={property.image || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=400&q=80'}
+                  src={property.image?.startsWith('http') ? property.image : `http://localhost:3000${property.image}` || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=400&q=80'}
                   alt={property.title}
                   className="w-full h-32 object-cover"
                 />

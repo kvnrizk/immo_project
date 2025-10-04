@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,31 +12,46 @@ const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Redirect to dashboard if already logged in
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    const success = login(username, password);
+    try {
+      const success = await login(username, password);
 
-    if (success) {
+      if (success) {
+        toast({
+          title: "Connexion réussie",
+          description: "Bienvenue dans votre dashboard",
+        });
+        navigate('/dashboard');
+      } else {
+        toast({
+          title: "Erreur de connexion",
+          description: "Nom d'utilisateur ou mot de passe incorrect",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
       toast({
-        title: "Connexion réussie",
-        description: "Bienvenue dans votre dashboard",
-      });
-      navigate('/dashboard');
-    } else {
-      toast({
-        title: "Erreur de connexion",
-        description: "Nom d'utilisateur ou mot de passe incorrect",
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la connexion",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
@@ -54,13 +69,13 @@ const Login = () => {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Nom d'utilisateur</Label>
+              <Label htmlFor="username">Email</Label>
               <div className="relative">
                 <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="username"
-                  type="text"
-                  placeholder="admin"
+                  type="email"
+                  placeholder="admin@clesdeparis.com"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="pl-10"

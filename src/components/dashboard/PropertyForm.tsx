@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Save, X } from 'lucide-react';
+import { Save, X, Upload, ImageIcon, Trash2 } from 'lucide-react';
 import { propertyAPI } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 import { Property } from '@/data/PropertyData';
@@ -20,6 +20,8 @@ interface PropertyFormProps {
 const PropertyForm = ({ property, onSave, onCancel }: PropertyFormProps) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     title: '',
     location: '',
@@ -29,8 +31,6 @@ const PropertyForm = ({ property, onSave, onCancel }: PropertyFormProps) => {
     price: '',
     description: '',
     features: '',
-    image: '',
-    images: ''
   });
 
   useEffect(() => {
@@ -44,11 +44,61 @@ const PropertyForm = ({ property, onSave, onCancel }: PropertyFormProps) => {
         price: property.price || '',
         description: property.description || '',
         features: Array.isArray(property.features) ? property.features.join(', ') : '',
-        image: property.image || '',
-        images: Array.isArray(property.images) ? property.images.join(', ') : ''
       });
+      // Set preview URLs from existing images
+      if (property.images && Array.isArray(property.images)) {
+        setPreviewUrls(property.images);
+      }
     }
   }, [property]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+
+    // Validate file types
+    const validFiles = files.filter(file => {
+      const isImage = file.type.startsWith('image/');
+      if (!isImage) {
+        toast({
+          title: "Erreur",
+          description: `${file.name} n'est pas une image valide`,
+          variant: "destructive",
+        });
+      }
+      return isImage;
+    });
+
+    // Validate file sizes (5MB max)
+    const validSizeFiles = validFiles.filter(file => {
+      const isValidSize = file.size <= 5 * 1024 * 1024;
+      if (!isValidSize) {
+        toast({
+          title: "Erreur",
+          description: `${file.name} est trop volumineux (max 5MB)`,
+          variant: "destructive",
+        });
+      }
+      return isValidSize;
+    });
+
+    // Create preview URLs
+    const newPreviewUrls = validSizeFiles.map(file => URL.createObjectURL(file));
+
+    setSelectedFiles(prev => [...prev, ...validSizeFiles]);
+    setPreviewUrls(prev => [...prev, ...newPreviewUrls]);
+  };
+
+  const removeImage = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    setPreviewUrls(prev => {
+      const newUrls = prev.filter((_, i) => i !== index);
+      // Revoke the URL to free memory
+      if (prev[index].startsWith('blob:')) {
+        URL.revokeObjectURL(prev[index]);
+      }
+      return newUrls;
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,29 +109,47 @@ const PropertyForm = ({ property, onSave, onCancel }: PropertyFormProps) => {
         title: formData.title,
         location: formData.location,
         type: formData.type,
-        bedrooms: parseInt(formData.bedrooms) || 0,
-        area: parseInt(formData.area) || 0,
+        bedrooms: parseInt(formData.bedrooms) || undefined,
+        area: parseInt(formData.area) || undefined,
         price: formData.price,
         description: formData.description,
         features: formData.features.split(',').map(f => f.trim()).filter(f => f),
-        image: formData.image || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80',
-        images: formData.images ? formData.images.split(',').map(i => i.trim()).filter(i => i) : []
       };
+
+      let createdProperty;
 
       if (property?.id) {
         // Update existing property
         await propertyAPI.update(property.id, propertyData);
+        createdProperty = property;
         toast({
           title: "Succès",
           description: "Propriété modifiée avec succès",
         });
       } else {
         // Create new property
-        await propertyAPI.create(propertyData);
+        createdProperty = await propertyAPI.create(propertyData);
         toast({
           title: "Succès",
           description: "Propriété créée avec succès",
         });
+      }
+
+      // Upload images if any were selected
+      if (selectedFiles.length > 0 && createdProperty?.id) {
+        try {
+          await propertyAPI.uploadImages(createdProperty.id.toString(), selectedFiles);
+          toast({
+            title: "Succès",
+            description: "Images téléchargées avec succès",
+          });
+        } catch (err) {
+          toast({
+            title: "Avertissement",
+            description: "Propriété créée mais erreur lors du téléchargement des images",
+            variant: "destructive",
+          });
+        }
       }
 
       onSave();
@@ -205,24 +273,52 @@ const PropertyForm = ({ property, onSave, onCancel }: PropertyFormProps) => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="image">Image principale (URL)</Label>
-            <Input
-              id="image"
-              value={formData.image}
-              onChange={(e) => handleInputChange('image', e.target.value)}
-              placeholder="https://example.com/image.jpg"
-            />
-          </div>
+            <Label htmlFor="images">Images de la propriété</Label>
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+              <input
+                type="file"
+                id="images"
+                multiple
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              <label htmlFor="images" className="cursor-pointer">
+                <Upload className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                <p className="text-sm text-gray-600 mb-1">
+                  Cliquez pour sélectionner des images
+                </p>
+                <p className="text-xs text-gray-500">
+                  PNG, JPG, GIF, WEBP jusqu'à 5MB (max 10 images)
+                </p>
+              </label>
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="images">Autres images (URLs séparées par des virgules)</Label>
-            <Textarea
-              id="images"
-              value={formData.images}
-              onChange={(e) => handleInputChange('images', e.target.value)}
-              placeholder="https://example.com/img1.jpg, https://example.com/img2.jpg"
-              rows={2}
-            />
+            {previewUrls.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                {previewUrls.map((url, index) => (
+                  <div key={index} className="relative group">
+                    <img
+                      src={url}
+                      alt={`Preview ${index + 1}`}
+                      className="w-full h-24 object-cover rounded-lg border-2 border-gray-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(index)}
+                      className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                    {index === 0 && (
+                      <div className="absolute bottom-1 left-1 bg-blue-500 text-white text-xs px-2 py-1 rounded">
+                        Principale
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="flex justify-end space-x-4">

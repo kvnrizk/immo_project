@@ -1,16 +1,20 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run dev:*)",
-      "Bash(npm run init-db:*)",
+      "Read(//c/Users/kevin/Desktop/Projects/immo_project_backend/src/properties/**)",
+      "Read(//c/Users/kevin/Desktop/Projects/immo_project_backend/**)",
       "Bash(netstat:*)",
       "Bash(findstr:*)",
       "Bash(taskkill:*)",
+      "Bash(npm run start:dev:*)",
       "Bash(curl:*)",
-      "Bash(timeout:*)",
-      "Bash(node:*)",
-      "Bash(dir:*)",
-      "Bash(psql:*)"
+      "Bash(psql:*)",
+      "Bash(npx ts-node:*)",
+      "Bash(dir ..immo_project_backendpublicproperties)",
+      "Bash(dir ..immo_project_backend)",
+      "Read(//c/Users/kevin/Desktop/Projects/main_immo/immo_project_backend/**)",
+      "Bash(node -e \"console.log(require(''crypto'').randomBytes(64).toString(''hex''))\")",
+      "Bash(npm run dev:*)"
     ],
     "deny": [],
     "ask": []

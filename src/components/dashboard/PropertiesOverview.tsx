@@ -8,6 +8,7 @@ import { useProperties } from '@/hooks/useProperties';
 import { propertyAPI } from '@/services/api';
 import { Property } from '@/data/PropertyData';
 import { useToast } from '@/hooks/use-toast';
+import { getImageUrl } from '@/utils/imageUrl';
 
 interface PropertiesOverviewProps {
   onSelectProperty: (property: Property) => void;
@@ -134,7 +135,7 @@ const PropertiesOverview = ({ onSelectProperty, onEditProperty }: PropertiesOver
           <Card key={property.id} className="hover:shadow-lg transition-shadow">
             <div className="relative">
               <img
-                src={property.image || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=400&q=80'}
+                src={getImageUrl(property.image)}
                 alt={property.title}
                 className="w-full h-48 object-cover rounded-t-lg"
               />

@@ -18,7 +18,7 @@ const Settings = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handlePasswordChange = (e: React.FormEvent) => {
+  const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (newPassword !== confirmPassword) {
@@ -39,26 +39,34 @@ const Settings = () => {
       return;
     }
 
-    setLoading(true);
-    const success = updatePassword(oldPassword, newPassword);
+    try {
+      setLoading(true);
+      const success = await updatePassword(oldPassword, newPassword);
 
-    if (success) {
-      toast({
-        title: "Succès",
-        description: "Mot de passe modifié avec succès"
-      });
-      setOldPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-    } else {
+      if (success) {
+        toast({
+          title: "Succès",
+          description: "Mot de passe modifié avec succès"
+        });
+        setOldPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+      } else {
+        toast({
+          title: "Erreur",
+          description: "Ancien mot de passe incorrect",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
       toast({
         title: "Erreur",
-        description: "Ancien mot de passe incorrect",
+        description: "Une erreur est survenue lors de la modification du mot de passe",
         variant: "destructive"
       });
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   const handleLogout = () => {
@@ -90,7 +98,7 @@ const Settings = () => {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label>Nom d'utilisateur</Label>
-            <Input value={user?.username || ''} disabled />
+            <Input value={user?.email || ''} disabled />
           </div>
           <div className="space-y-2">
             <Label>Email</Label>

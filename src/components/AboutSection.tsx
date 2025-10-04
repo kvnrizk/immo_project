@@ -37,10 +37,10 @@ const AboutSection = () => {
           <div className="relative">
             <Card className="overflow-hidden shadow-xl">
               <CardContent className="p-0">
-                <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=800&q=80" alt="Professionnel de l'immobilier" className="w-full h-96 object-cover" />
+                <img src="/profile.jpg" alt="Professionnel de l'immobilier" className="w-full h-96 object-cover" />
               </CardContent>
             </Card>
-            
+
           </div>
         </div>
       </div>

@@ -9,6 +9,7 @@ import BookingsManagement from '@/components/dashboard/BookingsManagement';
 import ContactsManagement from '@/components/dashboard/ContactsManagement';
 import PropertyForm from '@/components/dashboard/PropertyForm';
 import Settings from '@/components/dashboard/Settings';
+import Statistics from '@/components/dashboard/Statistics';
 
 const Dashboard = () => {
   const [activeView, setActiveView] = useState('overview');
@@ -42,6 +43,8 @@ const Dashboard = () => {
         return <ContactsManagement />;
       case 'add-property':
         return <PropertyForm property={editingProperty} onSave={handleSaveProperty} onCancel={handleCancelEdit} />;
+      case 'analytics':
+        return <Statistics />;
       case 'settings':
         return <Settings />;
       default:

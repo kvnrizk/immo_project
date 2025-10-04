@@ -9,8 +9,8 @@ const PropertiesSection = () => {
   const { properties, loading, error } = useProperties();
 
   const filteredProperties = activeFilter === 'tous'
-    ? properties
-    : properties.filter(property => property.type === activeFilter);
+    ? (properties || [])
+    : (properties || []).filter(property => property.type === activeFilter);
 
   const filters = [
     { key: 'tous', label: 'Tous les biens' },
