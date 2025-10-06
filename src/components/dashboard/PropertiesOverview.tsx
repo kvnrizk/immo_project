@@ -86,7 +86,7 @@ const PropertiesOverview = ({ onSelectProperty, onEditProperty }: PropertiesOver
   }
 
   if (error) {
-    return <div className="text-center py-12 text-red-500">{error}</div>;
+    return <div className="text-center py-12 text-red-500">{error.message || 'Une erreur est survenue'}</div>;
   }
 
   return (
@@ -178,11 +178,17 @@ const PropertiesOverview = ({ onSelectProperty, onEditProperty }: PropertiesOver
 
       {/* Properties Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {localProperties.map((property) => (
+        {localProperties.map((property) => {
+          // Use first image from images array, fallback to image field
+          const thumbnailImage = property.images && property.images.length > 0
+            ? property.images[0]
+            : property.image;
+
+          return (
           <Card key={property.id} className="hover:shadow-lg transition-shadow">
             <div className="relative">
               <img
-                src={getImageUrl(property.image)}
+                src={getImageUrl(thumbnailImage)}
                 alt={property.title}
                 className={`w-full h-48 object-cover rounded-t-lg transition-opacity ${
                   property.isActive ? 'opacity-100' : 'opacity-50'
@@ -259,7 +265,8 @@ const PropertiesOverview = ({ onSelectProperty, onEditProperty }: PropertiesOver
               </div>
             </CardContent>
           </Card>
-        ))}
+        );
+        })}
       </div>
     </div>
   );

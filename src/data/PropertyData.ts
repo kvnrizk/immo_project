@@ -11,6 +11,7 @@ export interface Property {
   area?: number;
   images?: string[];
   features?: string[];
+  isActive?: boolean;
 }
 
 export const properties: Property[] = [
