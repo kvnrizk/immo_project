@@ -31,18 +31,19 @@ const DashboardSidebar = ({ activeView, onViewChange, isOpen, onClose }: Dashboa
 
   return (
     <>
-      {/* Overlay for mobile */}
+      {/* Overlay for mobile - blocks interaction with page */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden transition-opacity duration-300"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden transition-all duration-300"
           onClick={onClose}
+          style={{ touchAction: 'none' }}
         />
       )}
 
       {/* Sidebar */}
       <div className={`
         fixed md:sticky top-0 left-0 z-50
-        w-64 bg-muted/30 border-r border-border p-4 h-screen
+        w-64 bg-background border-r border-border p-4 h-screen shadow-2xl
         transform transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}>

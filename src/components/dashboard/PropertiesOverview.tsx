@@ -64,64 +64,84 @@ const PropertiesOverview = ({ onSelectProperty, onEditProperty }: PropertiesOver
 
   return (
     <div className="space-y-6">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Propriétés</p>
-                <p className="text-2xl font-bold">{localProperties.length}</p>
+      {/* Stats Cards - Mobile Optimized */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        <Card className="hover:shadow-md transition-shadow">
+          <CardContent className="p-4 md:p-6">
+            <div className="flex flex-col md:flex-row items-start md:items-center md:justify-between gap-2">
+              <div className="w-full">
+                <div className="flex items-center justify-between md:block">
+                  <p className="text-xs md:text-sm font-medium text-muted-foreground">Total</p>
+                  <div className="md:hidden h-8 w-8 bg-primary/10 rounded-full flex items-center justify-center">
+                    <MapPin className="h-4 w-4 text-primary" />
+                  </div>
+                </div>
+                <p className="text-xl md:text-2xl font-bold mt-1">{localProperties.length}</p>
               </div>
-              <div className="h-8 w-8 bg-primary/10 rounded-full flex items-center justify-center">
+              <div className="hidden md:flex h-8 w-8 bg-primary/10 rounded-full items-center justify-center">
                 <MapPin className="h-4 w-4 text-primary" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">À vendre</p>
-                <p className="text-2xl font-bold text-green-600">
+        <Card className="hover:shadow-md transition-shadow">
+          <CardContent className="p-4 md:p-6">
+            <div className="flex flex-col md:flex-row items-start md:items-center md:justify-between gap-2">
+              <div className="w-full">
+                <div className="flex items-center justify-between md:block">
+                  <p className="text-xs md:text-sm font-medium text-muted-foreground">À vendre</p>
+                  <div className="md:hidden h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
+                    <Calendar className="h-4 w-4 text-green-600" />
+                  </div>
+                </div>
+                <p className="text-xl md:text-2xl font-bold text-green-600 mt-1">
                   {localProperties.filter(p => p.type === 'vente').length}
                 </p>
               </div>
-              <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
+              <div className="hidden md:flex h-8 w-8 bg-green-100 rounded-full items-center justify-center">
                 <Calendar className="h-4 w-4 text-green-600" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">À louer</p>
-                <p className="text-2xl font-bold text-blue-600">
+        <Card className="hover:shadow-md transition-shadow">
+          <CardContent className="p-4 md:p-6">
+            <div className="flex flex-col md:flex-row items-start md:items-center md:justify-between gap-2">
+              <div className="w-full">
+                <div className="flex items-center justify-between md:block">
+                  <p className="text-xs md:text-sm font-medium text-muted-foreground">À louer</p>
+                  <div className="md:hidden h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <Bed className="h-4 w-4 text-blue-600" />
+                  </div>
+                </div>
+                <p className="text-xl md:text-2xl font-bold text-blue-600 mt-1">
                   {localProperties.filter(p => p.type === 'location').length}
                 </p>
               </div>
-              <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
+              <div className="hidden md:flex h-8 w-8 bg-blue-100 rounded-full items-center justify-center">
                 <Bed className="h-4 w-4 text-blue-600" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Saisonnier</p>
-                <p className="text-2xl font-bold text-primary">
+        <Card className="hover:shadow-md transition-shadow">
+          <CardContent className="p-4 md:p-6">
+            <div className="flex flex-col md:flex-row items-start md:items-center md:justify-between gap-2">
+              <div className="w-full">
+                <div className="flex items-center justify-between md:block">
+                  <p className="text-xs md:text-sm font-medium text-muted-foreground">Saisonnier</p>
+                  <div className="md:hidden h-8 w-8 bg-primary/10 rounded-full flex items-center justify-center">
+                    <Square className="h-4 w-4 text-primary" />
+                  </div>
+                </div>
+                <p className="text-xl md:text-2xl font-bold text-primary mt-1">
                   {localProperties.filter(p => p.type === 'saisonnier').length}
                 </p>
               </div>
-              <div className="h-8 w-8 bg-primary/10 rounded-full flex items-center justify-center">
+              <div className="hidden md:flex h-8 w-8 bg-primary/10 rounded-full items-center justify-center">
                 <Square className="h-4 w-4 text-primary" />
               </div>
             </div>
