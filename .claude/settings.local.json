@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Read(//c/Users/kevin/Desktop/Projects/main_immo/**)"
+      "Read(//c/Users/kevin/Desktop/Projects/main_immo/**)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

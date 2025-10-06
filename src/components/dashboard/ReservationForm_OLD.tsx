@@ -68,9 +68,6 @@ export function ReservationForm({
 }: ReservationFormProps) {
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedDate, setSelectedDate] = useState('');
-  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
-  const [loadingSlots, setLoadingSlots] = useState(false);
 
   // Fetch properties for dropdown
   const { data: properties = [] } = useQuery({
@@ -92,41 +89,16 @@ export function ReservationForm({
     },
   });
 
-  const watchPropertyId = form.watch('propertyId');
-
-  // Fetch available slots when date or property changes
-  useEffect(() => {
-    const fetchSlots = async () => {
-      if (watchPropertyId && selectedDate) {
-        setLoadingSlots(true);
-        try {
-          const slots = await reservationAPI.getAvailableTimeSlots(watchPropertyId, selectedDate);
-          setAvailableSlots(slots);
-        } catch (error) {
-          toast.error('Erreur lors du chargement des créneaux disponibles');
-          setAvailableSlots([]);
-        } finally {
-          setLoadingSlots(false);
-        }
-      }
-    };
-    fetchSlots();
-  }, [watchPropertyId, selectedDate]);
-
   // Update form when reservation changes (for editing)
   useEffect(() => {
     if (reservation) {
-      const meetingDateTime = new Date(reservation.meetingDate);
-      const dateStr = format(meetingDateTime, 'yyyy-MM-dd');
-      setSelectedDate(dateStr);
-
       form.reset({
         propertyId: reservation.propertyId,
         clientName: reservation.clientName,
         clientEmail: reservation.clientEmail,
         clientPhone: reservation.clientPhone,
         type: reservation.type,
-        meetingDate: format(meetingDateTime, "yyyy-MM-dd'T'HH:mm"),
+        meetingDate: format(new Date(reservation.meetingDate), "yyyy-MM-dd'T'HH:mm"),
         notes: reservation.notes || '',
         status: reservation.status,
       });
@@ -141,7 +113,6 @@ export function ReservationForm({
         notes: '',
         status: ReservationStatus.EN_ATTENTE,
       });
-      setSelectedDate('');
     }
   }, [reservation, defaultPropertyId, form]);
 
@@ -149,11 +120,9 @@ export function ReservationForm({
     mutationFn: (data: CreateReservationDto) => reservationAPI.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reservations'] });
-      queryClient.invalidateQueries({ queryKey: ['reservationStats'] });
       toast.success('Réservation créée avec succès');
       onOpenChange(false);
       form.reset();
-      setSelectedDate('');
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Erreur lors de la création de la réservation');
@@ -165,7 +134,6 @@ export function ReservationForm({
       reservationAPI.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reservations'] });
-      queryClient.invalidateQueries({ queryKey: ['reservationStats'] });
       toast.success('Réservation mise à jour avec succès');
       onOpenChange(false);
     },
@@ -305,64 +273,10 @@ export function ReservationForm({
                 name="meetingDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Date de visite *</FormLabel>
+                    <FormLabel>Date et heure du rendez-vous *</FormLabel>
                     <FormControl>
-                      <Input
-                        type="date"
-                        value={selectedDate}
-                        onChange={(e) => {
-                          setSelectedDate(e.target.value);
-                          field.onChange(''); // Reset time when date changes
-                        }}
-                        min={new Date().toISOString().split('T')[0]}
-                      />
+                      <Input type="datetime-local" {...field} />
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="meetingDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Créneau horaire *</FormLabel>
-                    <Select
-                      onValueChange={(time) => {
-                        if (selectedDate) {
-                          field.onChange(`${selectedDate}T${time}:00`);
-                        }
-                      }}
-                      value={field.value ? field.value.split('T')[1]?.slice(0, 5) : ''}
-                      disabled={!selectedDate || loadingSlots}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue
-                            placeholder={
-                              loadingSlots
-                                ? 'Chargement...'
-                                : !selectedDate
-                                  ? 'Sélectionnez d\'abord une date'
-                                  : 'Sélectionner un créneau'
-                            }
-                          />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {availableSlots.length === 0 && !loadingSlots && selectedDate && (
-                          <SelectItem value="none" disabled>
-                            Aucun créneau disponible
-                          </SelectItem>
-                        )}
-                        {availableSlots.map((slot) => (
-                          <SelectItem key={slot} value={slot}>
-                            {slot}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

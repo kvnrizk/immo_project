@@ -404,6 +404,19 @@ export const reservationAPI = {
     });
     if (!response.ok) throw new Error('Failed to delete reservation');
   },
+  // Get available time slots for a property on a specific date
+  getAvailableTimeSlots: async (propertyId: number, date: string): Promise<string[]> => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_URL}/reservations/available-slots/${propertyId}/${date}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      credentials: 'include',
+    });
+    if (!response.ok) throw new Error('Failed to fetch available time slots');
+    return response.json();
+  },
+
 };
 
 // Analytics Types
