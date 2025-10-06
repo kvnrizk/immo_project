@@ -2,11 +2,17 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import PropertyCard from './PropertyCard';
 import { Button } from '@/components/ui/button';
-import { useProperties } from '@/hooks/useProperties';
+import { useQuery } from '@tanstack/react-query';
+import { propertyAPI } from '@/services/api';
 
 const PropertiesSection = () => {
   const [activeFilter, setActiveFilter] = useState('tous');
-  const { properties, loading, error } = useProperties();
+  const { data: properties = [], isLoading: loading, error } = useQuery({
+    queryKey: ['properties'],
+    queryFn: () => propertyAPI.getAll(),
+    staleTime: 0,
+    refetchOnMount: 'always',
+  });
 
   const filteredProperties = activeFilter === 'tous'
     ? (properties || [])
@@ -56,7 +62,7 @@ const PropertiesSection = () => {
 
         {error && (
           <div className="text-center py-12">
-            <p className="text-red-500">{error}</p>
+            <p className="text-red-500">{error instanceof Error ? error.message : 'Une erreur est survenue'}</p>
           </div>
         )}
 

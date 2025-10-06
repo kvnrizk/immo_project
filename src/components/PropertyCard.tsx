@@ -14,6 +14,7 @@ interface PropertyCardProps {
   location: string;
   type: 'vente' | 'location' | 'saisonnier';
   image: string;
+  images?: string[];
   description: string;
   bedrooms?: number;
   area?: number;
@@ -26,11 +27,15 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
   location,
   type,
   image,
+  images,
   description,
   bedrooms,
   area
 }) => {
   const navigate = useNavigate();
+
+  // Use first image from images array, fallback to image field
+  const thumbnailImage = images && images.length > 0 ? images[0] : image;
 
   const getTypeColor = (type: string) => {
     switch (type) {
@@ -88,7 +93,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
     >
       <div className="relative">
         <img
-          src={getImageUrl(image)}
+          src={getImageUrl(thumbnailImage)}
           alt={title}
           className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
         />
