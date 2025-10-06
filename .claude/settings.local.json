@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Read(//c/Users/kevin/Desktop/Projects/main_immo/**)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(python3:*)",
+      "Bash(python:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []

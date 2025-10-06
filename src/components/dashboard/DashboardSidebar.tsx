@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Home, Calendar, BookOpen, Plus, BarChart3, Settings, Mail, X } from 'lucide-react';
+import { Home, Calendar, BookOpen, Plus, BarChart3, Settings, Mail, X, Clock } from 'lucide-react';
 
 interface DashboardSidebarProps {
   activeView: string;
@@ -15,6 +15,7 @@ const DashboardSidebar = ({ activeView, onViewChange, isOpen, onClose }: Dashboa
     { id: 'overview', label: 'Vue d\'ensemble', icon: Home },
     { id: 'calendar', label: 'Calendrier', icon: Calendar },
     { id: 'bookings', label: 'Réservations', icon: BookOpen },
+    { id: 'availability', label: 'Disponibilités', icon: Clock },
     { id: 'contacts', label: 'Contacts', icon: Mail },
     { id: 'add-property', label: 'Ajouter bien', icon: Plus },
     { id: 'analytics', label: 'Statistiques', icon: BarChart3 },

@@ -10,6 +10,7 @@ import ContactsManagement from '@/components/dashboard/ContactsManagement';
 import PropertyForm from '@/components/dashboard/PropertyForm';
 import Settings from '@/components/dashboard/Settings';
 import Statistics from '@/components/dashboard/Statistics';
+import AvailabilityManagement from '@/components/dashboard/AvailabilityManagement';
 import { Menu } from 'lucide-react';
 
 const Dashboard = () => {
@@ -43,6 +44,8 @@ const Dashboard = () => {
         return <CalendarManagement />;
       case 'bookings':
         return <BookingsManagement />;
+      case 'availability':
+        return <AvailabilityManagement />;
       case 'contacts':
         return <ContactsManagement />;
       case 'add-property':

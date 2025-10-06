@@ -9,6 +9,7 @@ import PropertyImages from '@/components/property/PropertyImages';
 import PropertyInfo from '@/components/property/PropertyInfo';
 import AvailabilityCalendar from '@/components/property/AvailabilityCalendar';
 import ContactCard from '@/components/property/ContactCard';
+import VisitBookingForm from '@/components/property/VisitBookingForm';
 import { useProperty, useUnavailableDates } from '@/hooks/useProperties';
 
 const PropertyDetails = () => {
@@ -99,8 +100,19 @@ const PropertyDetails = () => {
                 <AvailabilityCalendar unavailableDates={unavailableDates} />
               )}
 
-              {/* Contact Button */}
-              <ContactCard />
+              {/* Visit Booking Form for vente & location */}
+              {(property.type === 'vente' || property.type === 'location') && (
+                <VisitBookingForm
+                  propertyId={property.id}
+                  propertyType={property.type}
+                  propertyTitle={property.title}
+                />
+              )}
+
+              {/* Contact Button for seasonal rentals */}
+              {property.type === 'saisonnier' && (
+                <ContactCard />
+              )}
             </div>
           </div>
         </div>

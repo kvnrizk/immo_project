@@ -417,6 +417,183 @@ export const reservationAPI = {
     return response.json();
   },
 
+  // Public endpoints (no auth required)
+
+  // Get available time slots (public, no auth)
+  getAvailableTimeSlotsPublic: async (propertyId: number, date: string): Promise<string[]> => {
+    const response = await fetch(`${API_URL}/reservations/public/available-slots/${propertyId}/${date}`);
+    if (!response.ok) throw new Error('Failed to fetch available time slots');
+    return response.json();
+  },
+
+  // Create reservation from public website (no auth)
+  createPublic: async (data: CreateReservationDto): Promise<Reservation> => {
+    const response = await fetch(`${API_URL}/reservations/public`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to create reservation');
+    }
+    return response.json();
+  },
+
+};
+
+// Availability Types
+export enum DayOfWeek {
+  MONDAY = 'monday',
+  TUESDAY = 'tuesday',
+  WEDNESDAY = 'wednesday',
+  THURSDAY = 'thursday',
+  FRIDAY = 'friday',
+  SATURDAY = 'saturday',
+  SUNDAY = 'sunday',
+}
+
+export interface Availability {
+  id: string;
+  userId: string;
+  dayOfWeek: DayOfWeek;
+  startTime: string;
+  endTime: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateAvailabilityDto {
+  dayOfWeek: DayOfWeek;
+  startTime: string;
+  endTime: string;
+  isActive?: boolean;
+}
+
+export interface UpdateAvailabilityDto {
+  dayOfWeek?: DayOfWeek;
+  startTime?: string;
+  endTime?: string;
+  isActive?: boolean;
+}
+
+export interface UnavailableDate {
+  id: string;
+  userId: string;
+  date: string;
+  reason?: string;
+  createdAt: string;
+}
+
+export interface CreateUnavailableDateDto {
+  date: string;
+  reason?: string;
+}
+
+// Availability API
+export const availabilityAPI = {
+  // Get all availability slots
+  getAll: async (): Promise<Availability[]> => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_URL}/availability`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      credentials: 'include',
+    });
+    if (!response.ok) throw new Error('Failed to fetch availability');
+    return response.json();
+  },
+
+  // Create availability slot
+  create: async (data: CreateAvailabilityDto): Promise<Availability> => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_URL}/availability`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      credentials: 'include',
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error('Failed to create availability');
+    return response.json();
+  },
+
+  // Update availability slot
+  update: async (id: string, data: UpdateAvailabilityDto): Promise<Availability> => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_URL}/availability/${id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      credentials: 'include',
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error('Failed to update availability');
+    return response.json();
+  },
+
+  // Delete availability slot
+  delete: async (id: string): Promise<void> => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_URL}/availability/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      credentials: 'include',
+    });
+    if (!response.ok) throw new Error('Failed to delete availability');
+  },
+
+  // Get all unavailable dates
+  getUnavailableDates: async (): Promise<UnavailableDate[]> => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_URL}/availability/unavailable-dates/list`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      credentials: 'include',
+    });
+    if (!response.ok) throw new Error('Failed to fetch unavailable dates');
+    return response.json();
+  },
+
+  // Create unavailable date
+  createUnavailableDate: async (data: CreateUnavailableDateDto): Promise<UnavailableDate> => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_URL}/availability/unavailable-dates`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      credentials: 'include',
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error('Failed to create unavailable date');
+    return response.json();
+  },
+
+  // Delete unavailable date
+  deleteUnavailableDate: async (id: string): Promise<void> => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_URL}/availability/unavailable-dates/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      credentials: 'include',
+    });
+    if (!response.ok) throw new Error('Failed to delete unavailable date');
+  },
 };
 
 // Analytics Types
