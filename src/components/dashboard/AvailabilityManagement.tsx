@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Clock, Calendar, Trash2, X } from 'lucide-react';
+import { Clock, Calendar, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -13,13 +13,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
 import { availabilityAPI, DayOfWeek } from '@/services/api';
@@ -27,8 +20,16 @@ import { format } from 'date-fns';
 
 const AvailabilityManagement = () => {
   const queryClient = useQueryClient();
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isBlockDateDialogOpen, setIsBlockDateDialogOpen] = useState(false);
+
+  // Generate time slots from 9:00 to 17:00
+  const TIME_SLOTS = useMemo(() => {
+    const slots = [];
+    for (let hour = 9; hour < 17; hour++) {
+      slots.push(`${hour.toString().padStart(2, '0')}:00`);
+    }
+    return slots;
+  }, []);
 
   // Fetch availability
   const { data: availability = [] } = useQuery({
@@ -47,8 +48,7 @@ const AvailabilityManagement = () => {
     mutationFn: availabilityAPI.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['availability'] });
-      toast({ title: 'Disponibilité ajoutée', description: 'Votre créneau a été ajouté avec succès.' });
-      setIsAddDialogOpen(false);
+      toast({ title: 'Créneau ajouté', description: 'Le créneau est maintenant disponible.' });
     },
     onError: (error: Error) => {
       toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
@@ -60,7 +60,7 @@ const AvailabilityManagement = () => {
     mutationFn: availabilityAPI.delete,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['availability'] });
-      toast({ title: 'Supprimé', description: 'Créneau supprimé avec succès.' });
+      toast({ title: 'Créneau supprimé', description: 'Le créneau n\'est plus disponible.' });
     },
     onError: (error: Error) => {
       toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
@@ -92,17 +92,6 @@ const AvailabilityManagement = () => {
     },
   });
 
-  const handleAddAvailability = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    createAvailabilityMutation.mutate({
-      dayOfWeek: formData.get('dayOfWeek') as DayOfWeek,
-      startTime: formData.get('startTime') as string,
-      endTime: formData.get('endTime') as string,
-      isActive: true,
-    });
-  };
-
   const handleBlockDate = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -122,14 +111,63 @@ const AvailabilityManagement = () => {
     [DayOfWeek.SUNDAY]: 'Dimanche',
   };
 
-  // Group availability by day
-  const availabilityByDay = availability.reduce((acc, slot) => {
-    if (!acc[slot.dayOfWeek]) {
-      acc[slot.dayOfWeek] = [];
+  const daysOrder = [
+    DayOfWeek.MONDAY,
+    DayOfWeek.TUESDAY,
+    DayOfWeek.WEDNESDAY,
+    DayOfWeek.THURSDAY,
+    DayOfWeek.FRIDAY,
+    DayOfWeek.SATURDAY,
+    DayOfWeek.SUNDAY,
+  ];
+
+  // Check if a time slot is available for a specific day
+  const isSlotAvailable = (day: DayOfWeek, timeSlot: string): boolean => {
+    const endHour = parseInt(timeSlot.split(':')[0]) + 1;
+    const endTime = `${endHour.toString().padStart(2, '0')}:00`;
+
+    return availability.some(
+      (slot) =>
+        slot.dayOfWeek === day &&
+        slot.startTime === timeSlot &&
+        slot.endTime === endTime &&
+        slot.isActive
+    );
+  };
+
+  // Get the availability ID for a time slot
+  const getSlotId = (day: DayOfWeek, timeSlot: string): string | null => {
+    const endHour = parseInt(timeSlot.split(':')[0]) + 1;
+    const endTime = `${endHour.toString().padStart(2, '0')}:00`;
+
+    const slot = availability.find(
+      (s) =>
+        s.dayOfWeek === day &&
+        s.startTime === timeSlot &&
+        s.endTime === endTime
+    );
+    return slot?.id || null;
+  };
+
+  // Toggle time slot availability
+  const toggleSlot = (day: DayOfWeek, timeSlot: string) => {
+    const slotId = getSlotId(day, timeSlot);
+    const endHour = parseInt(timeSlot.split(':')[0]) + 1;
+    const endTime = `${endHour.toString().padStart(2, '0')}:00`;
+
+    if (slotId) {
+      // Slot exists, delete it
+      deleteAvailabilityMutation.mutate(slotId);
+    } else {
+      // Slot doesn't exist, create it
+      createAvailabilityMutation.mutate({
+        dayOfWeek: day,
+        startTime: timeSlot,
+        endTime: endTime,
+        isActive: true,
+      });
     }
-    acc[slot.dayOfWeek].push(slot);
-    return acc;
-  }, {} as Record<DayOfWeek, typeof availability>);
+  };
 
   return (
     <div className="space-y-6">
@@ -137,108 +175,51 @@ const AvailabilityManagement = () => {
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Gestion des Disponibilités</h2>
           <p className="text-muted-foreground">
-            Définissez vos horaires de disponibilité et bloquez des dates spécifiques
+            Cliquez sur les créneaux pour les activer/désactiver
           </p>
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-3">
         {/* Weekly Availability */}
-        <Card>
+        <Card className="lg:col-span-2">
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Clock className="w-5 h-5" />
-                <CardTitle>Disponibilités Hebdomadaires</CardTitle>
-              </div>
-              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button size="sm">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Ajouter
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Ajouter un Créneau</DialogTitle>
-                    <DialogDescription>
-                      Définissez vos heures de disponibilité pour un jour de la semaine
-                    </DialogDescription>
-                  </DialogHeader>
-                  <form onSubmit={handleAddAvailability} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="dayOfWeek">Jour</Label>
-                      <Select name="dayOfWeek" required>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionnez un jour" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(dayLabels).map(([value, label]) => (
-                            <SelectItem key={value} value={value}>
-                              {label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="startTime">Heure de début</Label>
-                        <Input
-                          id="startTime"
-                          name="startTime"
-                          type="time"
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="endTime">Heure de fin</Label>
-                        <Input
-                          id="endTime"
-                          name="endTime"
-                          type="time"
-                          required
-                        />
-                      </div>
-                    </div>
-                    <Button type="submit" className="w-full">
-                      Ajouter le créneau
-                    </Button>
-                  </form>
-                </DialogContent>
-              </Dialog>
+            <div className="flex items-center gap-2">
+              <Clock className="w-5 h-5" />
+              <CardTitle>Disponibilités Hebdomadaires</CardTitle>
             </div>
             <CardDescription>
-              Vos heures de disponibilité par défaut chaque semaine
+              Créneaux d'une heure - Vert = Disponible, Gris = Indisponible
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {Object.entries(dayLabels).map(([day, label]) => (
-                <div key={day} className="space-y-2">
-                  <h4 className="font-semibold text-sm">{label}</h4>
-                  <div className="space-y-2">
-                    {availabilityByDay[day as DayOfWeek]?.length > 0 ? (
-                      availabilityByDay[day as DayOfWeek].map((slot) => (
-                        <div
-                          key={slot.id}
-                          className="flex items-center justify-between p-2 bg-muted rounded-md"
+            <div className="space-y-6">
+              {daysOrder.map((day) => (
+                <div key={day} className="space-y-3">
+                  <h4 className="font-semibold text-sm">{dayLabels[day]}</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {TIME_SLOTS.map((timeSlot) => {
+                      const isAvailable = isSlotAvailable(day, timeSlot);
+                      const endHour = parseInt(timeSlot.split(':')[0]) + 1;
+
+                      return (
+                        <button
+                          key={timeSlot}
+                          onClick={() => toggleSlot(day, timeSlot)}
+                          className={`
+                            px-4 py-2 rounded-lg text-sm font-medium
+                            transition-all duration-200 hover:scale-105 hover:shadow-md
+                            ${
+                              isAvailable
+                                ? 'bg-green-500 text-white hover:bg-green-600'
+                                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                            }
+                          `}
                         >
-                          <span className="text-sm">
-                            {slot.startTime} - {slot.endTime}
-                          </span>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => deleteAvailabilityMutation.mutate(slot.id)}
-                          >
-                            <Trash2 className="w-4 h-4 text-destructive" />
-                          </Button>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-muted-foreground">Aucun créneau</p>
-                    )}
+                          {timeSlot} - {endHour}:00
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               ))}
@@ -252,20 +233,19 @@ const AvailabilityManagement = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Calendar className="w-5 h-5" />
-                <CardTitle>Dates Indisponibles</CardTitle>
+                <CardTitle>Dates Bloquées</CardTitle>
               </div>
               <Dialog open={isBlockDateDialogOpen} onOpenChange={setIsBlockDateDialogOpen}>
                 <DialogTrigger asChild>
                   <Button size="sm" variant="outline">
-                    <X className="w-4 h-4 mr-2" />
-                    Bloquer une date
+                    Bloquer
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Bloquer une Date</DialogTitle>
                     <DialogDescription>
-                      Marquez une date comme indisponible pour les réservations
+                      Aucune réservation ne pourra être prise ce jour
                     </DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handleBlockDate} className="space-y-4">
@@ -296,23 +276,25 @@ const AvailabilityManagement = () => {
               </Dialog>
             </div>
             <CardDescription>
-              Dates spécifiques où vous n'êtes pas disponible
+              Journées complètement indisponibles
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
+            <div className="space-y-2 max-h-[600px] overflow-y-auto">
               {unavailableDates.length > 0 ? (
                 unavailableDates.map((blockedDate) => (
                   <div
                     key={blockedDate.id}
                     className="flex items-center justify-between p-3 bg-muted rounded-md"
                   >
-                    <div>
-                      <p className="font-medium">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">
                         {format(new Date(blockedDate.date), 'dd/MM/yyyy')}
                       </p>
                       {blockedDate.reason && (
-                        <p className="text-sm text-muted-foreground">{blockedDate.reason}</p>
+                        <p className="text-sm text-muted-foreground truncate">
+                          {blockedDate.reason}
+                        </p>
                       )}
                     </div>
                     <Button
