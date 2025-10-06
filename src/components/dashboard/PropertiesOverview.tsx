@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Edit, Power, PowerOff, Calendar, MapPin, Bed, Square, Trash2 } from 'lucide-react';
-import { useProperties } from '@/hooks/useProperties';
 import { propertyAPI } from '@/services/api';
 import { Property } from '@/data/PropertyData';
 import { useToast } from '@/hooks/use-toast';
@@ -16,8 +16,16 @@ interface PropertiesOverviewProps {
 }
 
 const PropertiesOverview = ({ onSelectProperty, onEditProperty }: PropertiesOverviewProps) => {
-  const { properties, loading, error } = useProperties(undefined, true); // Include inactive properties in dashboard
   const { toast } = useToast();
+
+  // Use React Query for properties with cache invalidation support
+  const { data: properties = [], isLoading: loading, error } = useQuery({
+    queryKey: ['properties'],
+    queryFn: () => propertyAPI.getAll(undefined, true), // Include inactive properties in dashboard
+    staleTime: 0, // Always refetch when component mounts
+    refetchOnMount: 'always', // Always refetch on mount
+  });
+
   const [localProperties, setLocalProperties] = useState<Property[]>([]);
 
   useEffect(() => {

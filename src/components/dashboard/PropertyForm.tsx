@@ -99,8 +99,12 @@ const PropertyForm = ({ property, onSave, onCancel }: PropertyFormProps) => {
       try {
         await propertyAPI.deleteImage(property.id, imageUrl);
 
-        // Invalidate properties cache to force refresh
+        // Invalidate ALL related caches to force refresh
         queryClient.invalidateQueries({ queryKey: ['properties'] });
+        queryClient.invalidateQueries({ queryKey: ['property'] });
+
+        // Small delay to ensure backend has finished processing
+        await new Promise(resolve => setTimeout(resolve, 300));
 
         toast({
           title: "Succès",
@@ -169,8 +173,12 @@ const PropertyForm = ({ property, onSave, onCancel }: PropertyFormProps) => {
       try {
         await propertyAPI.reorderImages(property.id, newPreviewUrls);
 
-        // Invalidate properties cache to force refresh
+        // Invalidate ALL related caches to force refresh
         queryClient.invalidateQueries({ queryKey: ['properties'] });
+        queryClient.invalidateQueries({ queryKey: ['property'] });
+
+        // Small delay to ensure backend has finished processing
+        await new Promise(resolve => setTimeout(resolve, 300));
 
         toast({
           title: "Succès",
@@ -230,8 +238,12 @@ const PropertyForm = ({ property, onSave, onCancel }: PropertyFormProps) => {
         try {
           await propertyAPI.uploadImages(createdProperty.id.toString(), selectedFiles);
 
-          // Invalidate properties cache to force refresh
+          // Invalidate ALL related caches to force complete refresh
           queryClient.invalidateQueries({ queryKey: ['properties'] });
+          queryClient.invalidateQueries({ queryKey: ['property'] });
+
+          // Small delay to ensure backend has finished processing
+          await new Promise(resolve => setTimeout(resolve, 500));
 
           toast({
             title: "Succès",
@@ -247,6 +259,7 @@ const PropertyForm = ({ property, onSave, onCancel }: PropertyFormProps) => {
       } else if (property?.id) {
         // Even if no new images, invalidate cache for property updates
         queryClient.invalidateQueries({ queryKey: ['properties'] });
+        queryClient.invalidateQueries({ queryKey: ['property'] });
       }
 
       onSave();
