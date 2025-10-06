@@ -120,9 +120,14 @@ export const contactAPI = {
 
   // Update contact status
   updateStatus: async (id: number, status: string): Promise<any> => {
+    const token = localStorage.getItem('token');
     const response = await fetch(`${API_URL}/contacts/${id}/status`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      credentials: 'include',
       body: JSON.stringify({ status }),
     });
     if (!response.ok) throw new Error('Failed to update contact status');

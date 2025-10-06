@@ -1,14 +1,16 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Home, Calendar, BookOpen, Plus, BarChart3, Settings, Mail } from 'lucide-react';
+import { Home, Calendar, BookOpen, Plus, BarChart3, Settings, Mail, X } from 'lucide-react';
 
 interface DashboardSidebarProps {
   activeView: string;
   onViewChange: (view: string) => void;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-const DashboardSidebar = ({ activeView, onViewChange }: DashboardSidebarProps) => {
+const DashboardSidebar = ({ activeView, onViewChange, isOpen, onClose }: DashboardSidebarProps) => {
   const menuItems = [
     { id: 'overview', label: 'Vue d\'ensemble', icon: Home },
     { id: 'calendar', label: 'Calendrier', icon: Calendar },
@@ -19,38 +21,70 @@ const DashboardSidebar = ({ activeView, onViewChange }: DashboardSidebarProps) =
     { id: 'settings', label: 'Paramètres', icon: Settings },
   ];
 
-  return (
-    <div className="w-64 bg-muted/30 border-r border-border p-4 h-screen">
-      <div className="space-y-2">
-        <h2 className="text-lg font-semibold text-foreground mb-4">Dashboard Admin</h2>
-        
-        {menuItems.map((item) => {
-          const Icon = item.icon;
-          return (
-            <Button
-              key={item.id}
-              variant={activeView === item.id ? "default" : "ghost"}
-              className={`w-full justify-start ${
-                activeView === item.id 
-                  ? "bg-primary text-primary-foreground" 
-                  : "hover:bg-muted"
-              }`}
-              onClick={() => onViewChange(item.id)}
-            >
-              <Icon className="w-4 h-4 mr-3" />
-              {item.label}
-            </Button>
-          );
-        })}
-      </div>
+  const handleViewChange = (view: string) => {
+    onViewChange(view);
+    // Close sidebar on mobile after selecting a view
+    if (window.innerWidth < 768) {
+      onClose();
+    }
+  };
 
-      <div className="mt-8 p-4 bg-primary/5 rounded-lg">
-        <h3 className="font-medium text-foreground mb-2">Aide rapide</h3>
-        <p className="text-sm text-muted-foreground">
-          Gérez vos propriétés, calendriers et réservations depuis ce tableau de bord.
-        </p>
+  return (
+    <>
+      {/* Overlay for mobile */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden transition-opacity duration-300"
+          onClick={onClose}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div className={`
+        fixed md:sticky top-0 left-0 z-50
+        w-64 bg-muted/30 border-r border-border p-4 h-screen
+        transform transition-transform duration-300 ease-in-out
+        ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+      `}>
+        {/* Close button for mobile */}
+        <button
+          onClick={onClose}
+          className="md:hidden absolute top-4 right-4 p-2 rounded-lg hover:bg-muted transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        <div className="space-y-2">
+          <h2 className="text-lg font-semibold text-foreground mb-4">Dashboard Admin</h2>
+
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Button
+                key={item.id}
+                variant={activeView === item.id ? "default" : "ghost"}
+                className={`w-full justify-start transition-all duration-200 ${
+                  activeView === item.id
+                    ? "bg-primary text-primary-foreground shadow-md scale-105"
+                    : "hover:bg-muted hover:scale-102"
+                }`}
+                onClick={() => handleViewChange(item.id)}
+              >
+                <Icon className="w-4 h-4 mr-3" />
+                {item.label}
+              </Button>
+            );
+          })}
+        </div>
+
+        <div className="mt-8 p-4 bg-primary/5 rounded-lg border border-primary/10">
+          <h3 className="font-medium text-foreground mb-2">Aide rapide</h3>
+          <p className="text-sm text-muted-foreground">
+            Gérez vos propriétés, calendriers et réservations depuis ce tableau de bord.
+          </p>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

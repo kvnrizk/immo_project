@@ -10,11 +10,13 @@ import ContactsManagement from '@/components/dashboard/ContactsManagement';
 import PropertyForm from '@/components/dashboard/PropertyForm';
 import Settings from '@/components/dashboard/Settings';
 import Statistics from '@/components/dashboard/Statistics';
+import { Menu } from 'lucide-react';
 
 const Dashboard = () => {
   const [activeView, setActiveView] = useState('overview');
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [editingProperty, setEditingProperty] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleEditProperty = (property) => {
     setEditingProperty(property);
@@ -54,13 +56,28 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="flex">
-        <DashboardSidebar activeView={activeView} onViewChange={setActiveView} />
+      <div className="flex relative">
+        <DashboardSidebar
+          activeView={activeView}
+          onViewChange={setActiveView}
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+        />
 
-        <div className="flex-1 p-6">
-          {activeView === 'overview' && <DashboardHeader activeView={activeView} />}
-          <div className={activeView === 'overview' ? 'mt-6' : ''}>
-            {renderActiveView()}
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Mobile menu button */}
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="md:hidden fixed top-4 left-4 z-30 p-3 bg-primary text-primary-foreground rounded-lg shadow-lg hover:bg-primary/90 transition-all duration-200 hover:scale-105"
+          >
+            <Menu className="w-6 h-6" />
+          </button>
+
+          <div className="flex-1 p-4 md:p-6 pt-20 md:pt-6">
+            {activeView === 'overview' && <DashboardHeader activeView={activeView} />}
+            <div className={activeView === 'overview' ? 'mt-6' : ''}>
+              {renderActiveView()}
+            </div>
           </div>
         </div>
       </div>
