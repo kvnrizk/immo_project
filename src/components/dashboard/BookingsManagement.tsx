@@ -147,48 +147,48 @@ const BookingsManagement = () => {
 
   return (
     <div className="space-y-6">
-      {/* Statistics Cards */}
+      {/* Statistics Cards - Mobile Optimized */}
       {stats && (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total</CardTitle>
-              <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+        <div className="grid grid-cols-2 gap-3 md:gap-4 md:grid-cols-3 lg:grid-cols-5">
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4 md:p-6">
+              <CardTitle className="text-xs md:text-sm font-medium">Total</CardTitle>
+              <CalendarIcon className="h-4 w-4 text-muted-foreground hidden md:block" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.total}</div>
+            <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
+              <div className="text-xl md:text-2xl font-bold">{stats.total}</div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">En attente</CardTitle>
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4 md:p-6">
+              <CardTitle className="text-xs md:text-sm font-medium">En attente</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.byStatus?.en_attente || 0}</div>
+            <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
+              <div className="text-xl md:text-2xl font-bold text-yellow-600">{stats.byStatus?.en_attente || 0}</div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Confirmées</CardTitle>
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4 md:p-6">
+              <CardTitle className="text-xs md:text-sm font-medium">Confirmées</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.byStatus?.confirmée || 0}</div>
+            <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
+              <div className="text-xl md:text-2xl font-bold text-green-600">{stats.byStatus?.confirmée || 0}</div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Vente</CardTitle>
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4 md:p-6">
+              <CardTitle className="text-xs md:text-sm font-medium">Vente</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.byType?.vente || 0}</div>
+            <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
+              <div className="text-xl md:text-2xl font-bold text-blue-600">{stats.byType?.vente || 0}</div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Location</CardTitle>
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4 md:p-6">
+              <CardTitle className="text-xs md:text-sm font-medium">Location</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.byType?.location || 0}</div>
+            <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
+              <div className="text-xl md:text-2xl font-bold text-purple-600">{stats.byType?.location || 0}</div>
             </CardContent>
           </Card>
         </div>
@@ -197,20 +197,20 @@ const BookingsManagement = () => {
       {/* Main Card */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <CardTitle>Réservations de visites</CardTitle>
-              <CardDescription>Gérez les rendez-vous de visite pour vos biens (vente & location)</CardDescription>
+              <CardTitle className="text-lg md:text-xl">Réservations de visites</CardTitle>
+              <CardDescription className="text-sm">Gérez les rendez-vous de visite pour vos biens (vente & location)</CardDescription>
             </div>
-            <Button onClick={handleNewReservation}>
+            <Button onClick={handleNewReservation} className="w-full md:w-auto">
               <Plus className="mr-2 h-4 w-4" />
               Nouvelle réservation
             </Button>
           </div>
         </CardHeader>
         <CardContent>
-          {/* Filters */}
-          <div className="mb-6 flex flex-wrap gap-3">
+          {/* Filters - Mobile Optimized */}
+          <div className="mb-6 flex flex-col md:flex-row flex-wrap gap-3">
             <Select
               value={filters.status || 'all'}
               onValueChange={(value) =>
@@ -220,7 +220,7 @@ const BookingsManagement = () => {
                 }))
               }
             >
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full md:w-[180px]">
                 <SelectValue placeholder="Tous les statuts" />
               </SelectTrigger>
               <SelectContent>
@@ -242,7 +242,7 @@ const BookingsManagement = () => {
                 }))
               }
             >
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full md:w-[180px]">
                 <SelectValue placeholder="Tous les types" />
               </SelectTrigger>
               <SelectContent>
@@ -253,7 +253,7 @@ const BookingsManagement = () => {
             </Select>
 
             {hasActiveFilters && (
-              <Button variant="ghost" size="sm" onClick={clearFilters}>
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="w-full md:w-auto">
                 <X className="mr-2 h-4 w-4" />
                 Effacer les filtres
               </Button>
@@ -274,62 +274,106 @@ const BookingsManagement = () => {
               </p>
             </div>
           ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Client</TableHead>
-                    <TableHead>Propriété</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Date de visite</TableHead>
-                    <TableHead>Statut</TableHead>
-                    <TableHead className="w-[50px]"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {reservations.map((reservation) => (
-                    <TableRow key={reservation.id}>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <p className="font-medium">{reservation.clientName}</p>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <Mail className="h-3 w-3" />
-                            <span>{reservation.clientEmail}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <Phone className="h-3 w-3" />
-                            <span>{reservation.clientPhone}</span>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <p className="font-medium">{reservation.property?.title}</p>
-                          {reservation.property?.location && (
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                              <MapPin className="h-3 w-3" />
-                              <span>{reservation.property.location}</span>
+            <>
+              {/* Desktop Table View */}
+              <div className="hidden md:block rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Client</TableHead>
+                      <TableHead>Propriété</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Date de visite</TableHead>
+                      <TableHead>Statut</TableHead>
+                      <TableHead className="w-[50px]"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {reservations.map((reservation) => (
+                      <TableRow key={reservation.id}>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <p className="font-medium">{reservation.clientName}</p>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <Mail className="h-3 w-3" />
+                              <span>{reservation.clientEmail}</span>
                             </div>
-                          )}
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <Phone className="h-3 w-3" />
+                              <span>{reservation.clientPhone}</span>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <p className="font-medium">{reservation.property?.title}</p>
+                            {reservation.property?.location && (
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <MapPin className="h-3 w-3" />
+                                <span>{reservation.property.location}</span>
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{typeLabels[reservation.type]}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-muted-foreground" />
+                            <span>
+                              {format(new Date(reservation.meetingDate), 'PPp', { locale: fr })}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={statusColors[reservation.status]} variant="outline">
+                            {statusLabels[reservation.status]}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => handleEdit(reservation)}>
+                                Modifier
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleDelete(reservation.id)}
+                                className="text-red-600"
+                              >
+                                Supprimer
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="md:hidden space-y-4">
+                {reservations.map((reservation) => (
+                  <Card key={reservation.id} className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge className={statusColors[reservation.status]} variant="outline">
+                              {statusLabels[reservation.status]}
+                            </Badge>
+                            <Badge variant="outline">{typeLabels[reservation.type]}</Badge>
+                          </div>
+                          <p className="font-semibold text-base">{reservation.clientName}</p>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{typeLabels[reservation.type]}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-muted-foreground" />
-                          <span>
-                            {format(new Date(reservation.meetingDate), 'PPp', { locale: fr })}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={statusColors[reservation.status]} variant="outline">
-                          {statusLabels[reservation.status]}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon">
@@ -350,12 +394,40 @@ const BookingsManagement = () => {
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                      </div>
+
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Mail className="h-3 w-3" />
+                          <span className="truncate">{reservation.clientEmail}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Phone className="h-3 w-3" />
+                          <span>{reservation.clientPhone}</span>
+                        </div>
+
+                        <div className="pt-2 border-t mt-3">
+                          <p className="font-medium text-sm mb-1">{reservation.property?.title}</p>
+                          {reservation.property?.location && (
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <MapPin className="h-3 w-3" />
+                              <span>{reservation.property.location}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-2 text-muted-foreground pt-2">
+                          <Clock className="h-4 w-4" />
+                          <span className="text-xs">
+                            {format(new Date(reservation.meetingDate), 'PPp', { locale: fr })}
+                          </span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
