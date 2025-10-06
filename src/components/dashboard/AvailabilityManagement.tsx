@@ -1,28 +1,32 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Clock, Calendar, Trash2 } from 'lucide-react';
+import { Clock, Calendar, ChevronLeft, ChevronRight, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
-import { availabilityAPI, DayOfWeek } from '@/services/api';
-import { format } from 'date-fns';
+import { availabilityAPI, reservationAPI, DayOfWeek } from '@/services/api';
+import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 const AvailabilityManagement = () => {
   const queryClient = useQueryClient();
-  const [isBlockDateDialogOpen, setIsBlockDateDialogOpen] = useState(false);
+  const [weekOffset, setWeekOffset] = useState(0);
 
-  // Generate time slots from 9:00 to 17:00
+  // Generate weekdays (Monday to Friday) for current week
+  const weekDays = useMemo(() => {
+    const today = new Date();
+    const startOfCurrentWeek = startOfWeek(addDays(today, weekOffset * 7), { weekStartsOn: 1 });
+    const days = [];
+
+    for (let i = 0; i < 5; i++) { // Monday to Friday
+      const day = addDays(startOfCurrentWeek, i);
+      days.push(day);
+    }
+
+    return days;
+  }, [weekOffset]);
+
+  // Generate time slots from 9:00 to 16:00
   const TIME_SLOTS = useMemo(() => {
     const slots = [];
     for (let hour = 9; hour < 17; hour++) {
@@ -31,10 +35,10 @@ const AvailabilityManagement = () => {
     return slots;
   }, []);
 
-  // Fetch availability
-  const { data: availability = [] } = useQuery({
-    queryKey: ['availability'],
-    queryFn: availabilityAPI.getAll,
+  // Fetch reservations
+  const { data: reservations = [] } = useQuery({
+    queryKey: ['reservations'],
+    queryFn: reservationAPI.getAll,
   });
 
   // Fetch unavailable dates
@@ -43,37 +47,18 @@ const AvailabilityManagement = () => {
     queryFn: availabilityAPI.getUnavailableDates,
   });
 
-  // Create availability mutation
-  const createAvailabilityMutation = useMutation({
-    mutationFn: availabilityAPI.create,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['availability'] });
-      toast({ title: 'Créneau ajouté', description: 'Le créneau est maintenant disponible.' });
-    },
-    onError: (error: Error) => {
-      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
-    },
-  });
-
-  // Delete availability mutation
-  const deleteAvailabilityMutation = useMutation({
-    mutationFn: availabilityAPI.delete,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['availability'] });
-      toast({ title: 'Créneau supprimé', description: 'Le créneau n\'est plus disponible.' });
-    },
-    onError: (error: Error) => {
-      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
-    },
-  });
-
   // Block date mutation
   const blockDateMutation = useMutation({
-    mutationFn: availabilityAPI.createUnavailableDate,
+    mutationFn: (data: { date: string; timeSlot?: string }) => {
+      // If timeSlot is provided, block specific time, otherwise block whole day
+      return availabilityAPI.createUnavailableDate({
+        date: data.date,
+        reason: data.timeSlot ? `Bloqué: ${data.timeSlot}` : 'Journée bloquée',
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['unavailableDates'] });
-      toast({ title: 'Date bloquée', description: 'La date a été marquée comme indisponible.' });
-      setIsBlockDateDialogOpen(false);
+      toast({ title: 'Date bloquée', description: 'Le créneau a été marqué comme indisponible.' });
     },
     onError: (error: Error) => {
       toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
@@ -85,89 +70,72 @@ const AvailabilityManagement = () => {
     mutationFn: availabilityAPI.deleteUnavailableDate,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['unavailableDates'] });
-      toast({ title: 'Date débloquée', description: 'La date est maintenant disponible.' });
+      toast({ title: 'Date débloquée', description: 'Le créneau est maintenant disponible.' });
     },
     onError: (error: Error) => {
       toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
     },
   });
 
-  const handleBlockDate = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    blockDateMutation.mutate({
-      date: formData.get('date') as string,
-      reason: formData.get('reason') as string || undefined,
+  const dayLabels: Record<string, string> = {
+    'monday': 'Lundi',
+    'tuesday': 'Mardi',
+    'wednesday': 'Mercredi',
+    'thursday': 'Jeudi',
+    'friday': 'Vendredi',
+  };
+
+  // Get reservation for a specific date and time
+  const getReservationForSlot = (date: Date, timeSlot: string) => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    return reservations.find(res => {
+      const resDate = format(new Date(res.meetingDate), 'yyyy-MM-dd');
+      const resTime = format(new Date(res.meetingDate), 'HH:mm');
+      return resDate === dateStr && resTime === timeSlot && res.status !== 'annulée';
     });
   };
 
-  const dayLabels: Record<DayOfWeek, string> = {
-    [DayOfWeek.MONDAY]: 'Lundi',
-    [DayOfWeek.TUESDAY]: 'Mardi',
-    [DayOfWeek.WEDNESDAY]: 'Mercredi',
-    [DayOfWeek.THURSDAY]: 'Jeudi',
-    [DayOfWeek.FRIDAY]: 'Vendredi',
-    [DayOfWeek.SATURDAY]: 'Samedi',
-    [DayOfWeek.SUNDAY]: 'Dimanche',
+  // Check if a date/time is blocked
+  const isSlotBlocked = (date: Date, timeSlot?: string) => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    return unavailableDates.some(blocked => {
+      const blockedDateStr = format(new Date(blocked.date), 'yyyy-MM-dd');
+      if (timeSlot && blocked.reason?.includes(timeSlot)) {
+        return blockedDateStr === dateStr;
+      }
+      return blockedDateStr === dateStr && !blocked.reason?.includes('Bloqué:');
+    });
   };
 
-  const daysOrder = [
-    DayOfWeek.MONDAY,
-    DayOfWeek.TUESDAY,
-    DayOfWeek.WEDNESDAY,
-    DayOfWeek.THURSDAY,
-    DayOfWeek.FRIDAY,
-    DayOfWeek.SATURDAY,
-    DayOfWeek.SUNDAY,
-  ];
-
-  // Check if a time slot is available for a specific day
-  const isSlotAvailable = (day: DayOfWeek, timeSlot: string): boolean => {
-    const endHour = parseInt(timeSlot.split(':')[0]) + 1;
-    const endTime = `${endHour.toString().padStart(2, '0')}:00`;
-
-    return availability.some(
-      (slot) =>
-        slot.dayOfWeek === day &&
-        slot.startTime === timeSlot &&
-        slot.endTime === endTime &&
-        slot.isActive
-    );
+  // Get blocked slot ID for a specific date/time
+  const getBlockedSlotId = (date: Date, timeSlot?: string) => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    const blocked = unavailableDates.find(b => {
+      const blockedDateStr = format(new Date(b.date), 'yyyy-MM-dd');
+      if (timeSlot && b.reason?.includes(timeSlot)) {
+        return blockedDateStr === dateStr;
+      }
+      return blockedDateStr === dateStr && !b.reason?.includes('Bloqué:');
+    });
+    return blocked?.id || null;
   };
 
-  // Get the availability ID for a time slot
-  const getSlotId = (day: DayOfWeek, timeSlot: string): string | null => {
-    const endHour = parseInt(timeSlot.split(':')[0]) + 1;
-    const endTime = `${endHour.toString().padStart(2, '0')}:00`;
+  // Toggle block for a specific slot
+  const toggleBlockSlot = (date: Date, timeSlot: string) => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    const blockedId = getBlockedSlotId(date, timeSlot);
 
-    const slot = availability.find(
-      (s) =>
-        s.dayOfWeek === day &&
-        s.startTime === timeSlot &&
-        s.endTime === endTime
-    );
-    return slot?.id || null;
-  };
-
-  // Toggle time slot availability
-  const toggleSlot = (day: DayOfWeek, timeSlot: string) => {
-    const slotId = getSlotId(day, timeSlot);
-    const endHour = parseInt(timeSlot.split(':')[0]) + 1;
-    const endTime = `${endHour.toString().padStart(2, '0')}:00`;
-
-    if (slotId) {
-      // Slot exists, delete it
-      deleteAvailabilityMutation.mutate(slotId);
+    if (blockedId) {
+      // Unblock
+      unblockDateMutation.mutate(blockedId);
     } else {
-      // Slot doesn't exist, create it
-      createAvailabilityMutation.mutate({
-        dayOfWeek: day,
-        startTime: timeSlot,
-        endTime: endTime,
-        isActive: true,
-      });
+      // Block
+      blockDateMutation.mutate({ date: dateStr, timeSlot });
     }
   };
+
+  const canGoPreviousWeek = weekOffset > -4; // Allow going back 4 weeks
+  const canGoNextWeek = weekOffset < 8; // Allow going forward 8 weeks
 
   return (
     <div className="space-y-6">
@@ -175,142 +143,175 @@ const AvailabilityManagement = () => {
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Gestion des Disponibilités</h2>
           <p className="text-muted-foreground">
-            Cliquez sur les créneaux pour les activer/désactiver
+            Gérez vos réservations et bloquez des créneaux
           </p>
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Weekly Availability */}
-        <Card className="lg:col-span-2">
+      {/* Week Navigation */}
+      <div className="flex items-center justify-between">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setWeekOffset(prev => prev - 1)}
+          disabled={!canGoPreviousWeek}
+        >
+          <ChevronLeft className="w-4 h-4 mr-2" />
+          Semaine précédente
+        </Button>
+        <span className="text-sm font-medium">
+          {weekOffset === 0 ? 'Cette semaine' : weekOffset > 0 ? `+${weekOffset} semaine${weekOffset > 1 ? 's' : ''}` : `${weekOffset} semaine${weekOffset < -1 ? 's' : ''}`}
+        </span>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setWeekOffset(prev => prev + 1)}
+          disabled={!canGoNextWeek}
+        >
+          Semaine suivante
+          <ChevronRight className="w-4 h-4 ml-2" />
+        </Button>
+      </div>
+
+      <div className="grid gap-6">
+        {/* Reservations View */}
+        <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
               <Clock className="w-5 h-5" />
-              <CardTitle>Disponibilités Hebdomadaires</CardTitle>
+              <CardTitle>Réservations de la Semaine</CardTitle>
             </div>
             <CardDescription>
-              Créneaux d'une heure - Vert = Disponible, Gris = Indisponible
+              Voir toutes les réservations clients pour cette semaine
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
-              {daysOrder.map((day) => (
-                <div key={day} className="space-y-3">
-                  <h4 className="font-semibold text-sm">{dayLabels[day]}</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {TIME_SLOTS.map((timeSlot) => {
-                      const isAvailable = isSlotAvailable(day, timeSlot);
-                      const endHour = parseInt(timeSlot.split(':')[0]) + 1;
+              {weekDays.map((day) => {
+                const dayName = format(day, 'EEEE', { locale: fr });
+                const dayDate = format(day, 'd MMM', { locale: fr });
 
-                      return (
-                        <button
-                          key={timeSlot}
-                          onClick={() => toggleSlot(day, timeSlot)}
-                          className={`
-                            px-4 py-2 rounded-lg text-sm font-medium
-                            transition-all duration-200 hover:scale-105 hover:shadow-md
-                            ${
-                              isAvailable
-                                ? 'bg-green-500 text-white hover:bg-green-600'
-                                : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                            }
-                          `}
-                        >
-                          {timeSlot} - {endHour}:00
-                        </button>
-                      );
-                    })}
+                return (
+                  <div key={day.toISOString()} className="space-y-3">
+                    <h4 className="font-semibold text-sm capitalize">
+                      {dayName} {dayDate}
+                    </h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2">
+                      {TIME_SLOTS.map((timeSlot) => {
+                        const reservation = getReservationForSlot(day, timeSlot);
+                        const endHour = parseInt(timeSlot.split(':')[0]) + 1;
+
+                        return (
+                          <div
+                            key={timeSlot}
+                            className={`
+                              relative p-3 rounded-lg text-sm transition-all duration-200
+                              ${
+                                reservation
+                                  ? 'bg-blue-500 text-white shadow-md'
+                                  : 'bg-muted text-muted-foreground'
+                              }
+                            `}
+                          >
+                            <div className="font-medium">
+                              {timeSlot.slice(0, 5)} - {endHour}:00
+                            </div>
+                            {reservation && (
+                              <div className="flex items-center gap-1 mt-1 text-xs">
+                                <User className="w-3 h-3" />
+                                <span className="truncate">
+                                  {reservation.clientName}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </CardContent>
         </Card>
 
-        {/* Blocked Dates */}
+        {/* Dates Management */}
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Calendar className="w-5 h-5" />
-                <CardTitle>Dates Bloquées</CardTitle>
-              </div>
-              <Dialog open={isBlockDateDialogOpen} onOpenChange={setIsBlockDateDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button size="sm" variant="outline">
-                    Bloquer
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Bloquer une Date</DialogTitle>
-                    <DialogDescription>
-                      Aucune réservation ne pourra être prise ce jour
-                    </DialogDescription>
-                  </DialogHeader>
-                  <form onSubmit={handleBlockDate} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="date">Date</Label>
-                      <Input
-                        id="date"
-                        name="date"
-                        type="date"
-                        min={new Date().toISOString().split('T')[0]}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="reason">Raison (optionnel)</Label>
-                      <Textarea
-                        id="reason"
-                        name="reason"
-                        placeholder="Ex: Congés, rendez-vous personnel..."
-                        rows={3}
-                      />
-                    </div>
-                    <Button type="submit" className="w-full">
-                      Bloquer la date
-                    </Button>
-                  </form>
-                </DialogContent>
-              </Dialog>
+            <div className="flex items-center gap-2">
+              <Calendar className="w-5 h-5" />
+              <CardTitle>Dates Bloquées</CardTitle>
             </div>
             <CardDescription>
-              Journées complètement indisponibles
+              Cliquez sur un créneau pour le bloquer/débloquer. Les créneaux bloqués ne seront pas disponibles pour les clients.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2 max-h-[600px] overflow-y-auto">
-              {unavailableDates.length > 0 ? (
-                unavailableDates.map((blockedDate) => (
-                  <div
-                    key={blockedDate.id}
-                    className="flex items-center justify-between p-3 bg-muted rounded-md"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">
-                        {format(new Date(blockedDate.date), 'dd/MM/yyyy')}
-                      </p>
-                      {blockedDate.reason && (
-                        <p className="text-sm text-muted-foreground truncate">
-                          {blockedDate.reason}
-                        </p>
-                      )}
+            <div className="space-y-6">
+              {weekDays.map((day) => {
+                const dayName = format(day, 'EEEE', { locale: fr });
+                const dayDate = format(day, 'd MMM', { locale: fr });
+
+                return (
+                  <div key={day.toISOString()} className="space-y-3">
+                    <h4 className="font-semibold text-sm capitalize">
+                      {dayName} {dayDate}
+                    </h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2">
+                      {TIME_SLOTS.map((timeSlot) => {
+                        const reservation = getReservationForSlot(day, timeSlot);
+                        const isBlocked = isSlotBlocked(day, timeSlot);
+                        const endHour = parseInt(timeSlot.split(':')[0]) + 1;
+
+                        // Can't block if there's a reservation
+                        const canToggle = !reservation;
+
+                        return (
+                          <button
+                            key={timeSlot}
+                            type="button"
+                            onClick={() => canToggle && toggleBlockSlot(day, timeSlot)}
+                            disabled={!canToggle}
+                            className={`
+                              p-3 rounded-lg text-sm font-medium transition-all duration-200
+                              ${
+                                reservation
+                                  ? 'bg-blue-500 text-white cursor-not-allowed opacity-75'
+                                  : isBlocked
+                                    ? 'bg-red-500 text-white hover:bg-red-600 hover:scale-105'
+                                    : 'bg-green-500 text-white hover:bg-green-600 hover:scale-105'
+                              }
+                            `}
+                          >
+                            {timeSlot.slice(0, 5)} - {endHour}:00
+                            {reservation && (
+                              <div className="text-xs mt-1 opacity-90">Réservé</div>
+                            )}
+                          </button>
+                        );
+                      })}
                     </div>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => unblockDateMutation.mutate(blockedDate.id)}
-                    >
-                      <Trash2 className="w-4 h-4 text-destructive" />
-                    </Button>
                   </div>
-                ))
-              ) : (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  Aucune date bloquée
-                </p>
-              )}
+                );
+              })}
+            </div>
+
+            <div className="mt-6 p-4 bg-muted rounded-lg space-y-2">
+              <h4 className="font-semibold text-sm">Légende</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-green-500"></div>
+                  <span>Disponible (cliquez pour bloquer)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-red-500"></div>
+                  <span>Bloqué (cliquez pour débloquer)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-blue-500"></div>
+                  <span>Réservé (non modifiable)</span>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
