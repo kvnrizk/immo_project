@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Eye, Calendar, MapPin, Bed, Square, Trash2 } from 'lucide-react';
+import { Edit, Power, PowerOff, Calendar, MapPin, Bed, Square, Trash2 } from 'lucide-react';
 import { useProperties } from '@/hooks/useProperties';
 import { propertyAPI } from '@/services/api';
 import { Property } from '@/data/PropertyData';
@@ -40,6 +40,25 @@ const PropertiesOverview = ({ onSelectProperty, onEditProperty }: PropertiesOver
       toast({
         title: "Erreur",
         description: "Impossible de supprimer la propriété",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleToggleActive = async (id: number) => {
+    try {
+      const updatedProperty = await propertyAPI.toggleActive(id);
+      setLocalProperties(prev =>
+        prev.map(p => p.id === id ? updatedProperty : p)
+      );
+      toast({
+        title: "Succès",
+        description: updatedProperty.isActive ? "Propriété activée" : "Propriété désactivée",
+      });
+    } catch (err) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de changer le statut",
         variant: "destructive",
       });
     }
@@ -157,11 +176,18 @@ const PropertiesOverview = ({ onSelectProperty, onEditProperty }: PropertiesOver
               <img
                 src={getImageUrl(property.image)}
                 alt={property.title}
-                className="w-full h-48 object-cover rounded-t-lg"
+                className={`w-full h-48 object-cover rounded-t-lg transition-opacity ${
+                  property.isActive ? 'opacity-100' : 'opacity-50'
+                }`}
               />
               <Badge className="absolute top-3 right-3 bg-primary text-primary-foreground">
                 {getTypeLabel(property.type)}
               </Badge>
+              {!property.isActive && (
+                <div className="absolute inset-0 bg-black/50 rounded-t-lg flex items-center justify-center">
+                  <Badge variant="destructive" className="text-sm">Désactivé</Badge>
+                </div>
+              )}
             </div>
 
             <CardHeader>
@@ -190,15 +216,25 @@ const PropertiesOverview = ({ onSelectProperty, onEditProperty }: PropertiesOver
               <div className="flex space-x-2">
                 <Button
                   size="sm"
-                  variant="outline"
+                  variant={property.isActive ? "default" : "outline"}
                   className="flex-1"
-                  onClick={() => onSelectProperty(property)}
+                  onClick={() => handleToggleActive(property.id)}
                 >
-                  <Eye className="w-4 h-4 mr-1" />
-                  Voir
+                  {property.isActive ? (
+                    <>
+                      <Power className="w-4 h-4 mr-1" />
+                      Actif
+                    </>
+                  ) : (
+                    <>
+                      <PowerOff className="w-4 h-4 mr-1" />
+                      Inactif
+                    </>
+                  )}
                 </Button>
                 <Button
                   size="sm"
+                  variant="outline"
                   className="flex-1"
                   onClick={() => onEditProperty(property)}
                 >

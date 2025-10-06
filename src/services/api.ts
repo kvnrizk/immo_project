@@ -90,6 +90,20 @@ export const propertyAPI = {
     if (!response.ok) throw new Error('Failed to upload images');
     return response.json();
   },
+
+  // Toggle property active status
+  toggleActive: async (id: number): Promise<Property> => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_URL}/properties/${id}/toggle-active`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      credentials: 'include',
+    });
+    if (!response.ok) throw new Error('Failed to toggle property status');
+    return response.json();
+  },
 };
 
 // Contacts API

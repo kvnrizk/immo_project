@@ -17,6 +17,7 @@ const Dashboard = () => {
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [editingProperty, setEditingProperty] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const handleEditProperty = (property) => {
     setEditingProperty(property);
@@ -26,6 +27,7 @@ const Dashboard = () => {
   const handleSaveProperty = () => {
     setEditingProperty(null);
     setActiveView('overview');
+    setRefreshKey(prev => prev + 1); // Force refresh
   };
 
   const handleCancelEdit = () => {
@@ -36,7 +38,7 @@ const Dashboard = () => {
   const renderActiveView = () => {
     switch (activeView) {
       case 'overview':
-        return <PropertiesOverview onSelectProperty={setSelectedProperty} onEditProperty={handleEditProperty} />;
+        return <PropertiesOverview key={refreshKey} onSelectProperty={setSelectedProperty} onEditProperty={handleEditProperty} />;
       case 'calendar':
         return <CalendarManagement />;
       case 'bookings':
@@ -50,7 +52,7 @@ const Dashboard = () => {
       case 'settings':
         return <Settings />;
       default:
-        return <PropertiesOverview onSelectProperty={setSelectedProperty} onEditProperty={handleEditProperty} />;
+        return <PropertiesOverview key={refreshKey} onSelectProperty={setSelectedProperty} onEditProperty={handleEditProperty} />;
     }
   };
 

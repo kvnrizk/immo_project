@@ -81,8 +81,8 @@ const Statistics = () => {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Statistiques & Performances</h2>
-        <p className="text-muted-foreground">
+        <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Statistiques & Performances</h2>
+        <p className="text-sm md:text-base text-muted-foreground">
           Vue d'ensemble des performances du site et des analyses de trafic
         </p>
       </div>
@@ -153,48 +153,48 @@ const Statistics = () => {
       {/* Visitor Statistics Cards */}
       {analytics && (
         <>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total visiteurs</CardTitle>
+          <div className="grid gap-3 grid-cols-2 md:grid-cols-2 lg:grid-cols-4 md:gap-4">
+            <Card className="hover:shadow-md transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4 md:p-6">
+                <CardTitle className="text-xs md:text-sm font-medium">Total</CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{analytics.visitorStats.total}</div>
-                <p className="text-xs text-muted-foreground">Depuis le lancement</p>
+              <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
+                <div className="text-xl md:text-2xl font-bold">{analytics.visitorStats.total}</div>
+                <p className="text-xs text-muted-foreground hidden md:block">Depuis le lancement</p>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Aujourd'hui</CardTitle>
+            <Card className="hover:shadow-md transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4 md:p-6">
+                <CardTitle className="text-xs md:text-sm font-medium">Aujourd'hui</CardTitle>
                 <Eye className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{analytics.visitorStats.today}</div>
-                <p className="text-xs text-muted-foreground">Visiteurs actifs</p>
+              <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
+                <div className="text-xl md:text-2xl font-bold">{analytics.visitorStats.today}</div>
+                <p className="text-xs text-muted-foreground hidden md:block">Visiteurs actifs</p>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Cette semaine</CardTitle>
+            <Card className="hover:shadow-md transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4 md:p-6">
+                <CardTitle className="text-xs md:text-sm font-medium">Semaine</CardTitle>
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{analytics.visitorStats.thisWeek}</div>
-                <p className="text-xs text-muted-foreground">7 derniers jours</p>
+              <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
+                <div className="text-xl md:text-2xl font-bold">{analytics.visitorStats.thisWeek}</div>
+                <p className="text-xs text-muted-foreground hidden md:block">7 derniers jours</p>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Ce mois-ci</CardTitle>
+            <Card className="hover:shadow-md transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4 md:p-6">
+                <CardTitle className="text-xs md:text-sm font-medium">Mois</CardTitle>
                 <Calendar className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{analytics.visitorStats.thisMonth}</div>
-                <p className="text-xs text-muted-foreground">30 derniers jours</p>
+              <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
+                <div className="text-xl md:text-2xl font-bold">{analytics.visitorStats.thisMonth}</div>
+                <p className="text-xs text-muted-foreground hidden md:block">30 derniers jours</p>
               </CardContent>
             </Card>
           </div>

@@ -15,8 +15,10 @@ import Contact from "./pages/Contact";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
+import CookiePolicy from "./pages/CookiePolicy";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./contexts/AuthContext";
+import CookieConsent from "./components/CookieConsent";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +40,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <ScrollToTop />
+          <CookieConsent />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/property/:id" element={<PropertyDetails />} />
@@ -46,6 +49,7 @@ const App = () => (
             <Route path="/renting" element={<RentingPage />} />
             <Route path="/short-term" element={<ShortTermPage />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/politique-cookies" element={<CookiePolicy />} />
             <Route path="/login" element={<Login />} />
             <Route path="/dashboard" element={
               <ProtectedRoute>
