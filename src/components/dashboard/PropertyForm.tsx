@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,6 +20,7 @@ interface PropertyFormProps {
 
 const PropertyForm = ({ property, onSave, onCancel }: PropertyFormProps) => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
@@ -96,6 +98,10 @@ const PropertyForm = ({ property, onSave, onCancel }: PropertyFormProps) => {
     if (property?.id && !imageUrl.startsWith('blob:')) {
       try {
         await propertyAPI.deleteImage(property.id, imageUrl);
+
+        // Invalidate properties cache to force refresh
+        queryClient.invalidateQueries({ queryKey: ['properties'] });
+
         toast({
           title: "Succès",
           description: "Image supprimée avec succès",
@@ -162,6 +168,10 @@ const PropertyForm = ({ property, onSave, onCancel }: PropertyFormProps) => {
     if (property?.id && newPreviewUrls.every(url => !url.startsWith('blob:'))) {
       try {
         await propertyAPI.reorderImages(property.id, newPreviewUrls);
+
+        // Invalidate properties cache to force refresh
+        queryClient.invalidateQueries({ queryKey: ['properties'] });
+
         toast({
           title: "Succès",
           description: "L'ordre des images a été mis à jour. La première image est maintenant l'image principale.",
@@ -219,6 +229,10 @@ const PropertyForm = ({ property, onSave, onCancel }: PropertyFormProps) => {
       if (selectedFiles.length > 0 && createdProperty?.id) {
         try {
           await propertyAPI.uploadImages(createdProperty.id.toString(), selectedFiles);
+
+          // Invalidate properties cache to force refresh
+          queryClient.invalidateQueries({ queryKey: ['properties'] });
+
           toast({
             title: "Succès",
             description: "Images téléchargées avec succès",
@@ -230,6 +244,9 @@ const PropertyForm = ({ property, onSave, onCancel }: PropertyFormProps) => {
             variant: "destructive",
           });
         }
+      } else if (property?.id) {
+        // Even if no new images, invalidate cache for property updates
+        queryClient.invalidateQueries({ queryKey: ['properties'] });
       }
 
       onSave();
