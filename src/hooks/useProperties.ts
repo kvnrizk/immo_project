@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Property } from '@/data/PropertyData';
 import { propertyAPI } from '@/services/api';
 
-export const useProperties = (type?: string) => {
+export const useProperties = (type?: string, includeInactive = false) => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -11,7 +11,7 @@ export const useProperties = (type?: string) => {
     const fetchProperties = async () => {
       try {
         setLoading(true);
-        const data = await propertyAPI.getAll(type);
+        const data = await propertyAPI.getAll(type, includeInactive);
         setProperties(data);
         setError(null);
       } catch (err) {
@@ -23,7 +23,7 @@ export const useProperties = (type?: string) => {
     };
 
     fetchProperties();
-  }, [type]);
+  }, [type, includeInactive]);
 
   return { properties, loading, error };
 };

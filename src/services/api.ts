@@ -5,8 +5,12 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 // Properties API
 export const propertyAPI = {
   // Get all properties
-  getAll: async (type?: string): Promise<Property[]> => {
-    const url = type ? `${API_URL}/properties?type=${type}` : `${API_URL}/properties`;
+  getAll: async (type?: string, includeInactive = false): Promise<Property[]> => {
+    const params = new URLSearchParams();
+    if (type) params.append('type', type);
+    if (includeInactive) params.append('includeInactive', 'true');
+
+    const url = params.toString() ? `${API_URL}/properties?${params}` : `${API_URL}/properties`;
     const response = await fetch(url);
     if (!response.ok) throw new Error('Failed to fetch properties');
     return response.json();
@@ -102,6 +106,38 @@ export const propertyAPI = {
       credentials: 'include',
     });
     if (!response.ok) throw new Error('Failed to toggle property status');
+    return response.json();
+  },
+
+  // Delete an image from a property
+  deleteImage: async (propertyId: number, imageUrl: string): Promise<Property> => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_URL}/properties/${propertyId}/images`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      credentials: 'include',
+      body: JSON.stringify({ imageUrl }),
+    });
+    if (!response.ok) throw new Error('Failed to delete image');
+    return response.json();
+  },
+
+  // Reorder images for a property
+  reorderImages: async (propertyId: number, imageUrls: string[]): Promise<Property> => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_URL}/properties/${propertyId}/reorder-images`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      credentials: 'include',
+      body: JSON.stringify({ imageUrls }),
+    });
+    if (!response.ok) throw new Error('Failed to reorder images');
     return response.json();
   },
 };

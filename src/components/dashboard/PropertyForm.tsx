@@ -1,12 +1,12 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Save, X, Upload, ImageIcon, Trash2 } from 'lucide-react';
+import { Save, X, Upload, ImageIcon, Trash2, GripVertical } from 'lucide-react';
 import { propertyAPI } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 import { Property } from '@/data/PropertyData';
@@ -22,6 +22,7 @@ const PropertyForm = ({ property, onSave, onCancel }: PropertyFormProps) => {
   const [loading, setLoading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     title: '',
     location: '',
@@ -88,16 +89,95 @@ const PropertyForm = ({ property, onSave, onCancel }: PropertyFormProps) => {
     setPreviewUrls(prev => [...prev, ...newPreviewUrls]);
   };
 
-  const removeImage = (index: number) => {
+  const removeImage = async (index: number) => {
+    const imageUrl = previewUrls[index];
+
+    // If it's an existing image from the server (not a blob), delete it from the backend
+    if (property?.id && !imageUrl.startsWith('blob:')) {
+      try {
+        await propertyAPI.deleteImage(property.id, imageUrl);
+        toast({
+          title: "Succès",
+          description: "Image supprimée avec succès",
+        });
+      } catch (err) {
+        toast({
+          title: "Erreur",
+          description: "Impossible de supprimer l'image",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     setSelectedFiles(prev => prev.filter((_, i) => i !== index));
     setPreviewUrls(prev => {
       const newUrls = prev.filter((_, i) => i !== index);
-      // Revoke the URL to free memory
+      // Revoke the URL to free memory for blob URLs
       if (prev[index].startsWith('blob:')) {
         URL.revokeObjectURL(prev[index]);
       }
       return newUrls;
     });
+  };
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = async (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      return;
+    }
+
+    const newPreviewUrls = [...previewUrls];
+    const newSelectedFiles = [...selectedFiles];
+
+    // Swap the items
+    const draggedUrl = newPreviewUrls[draggedIndex];
+    const draggedFile = newSelectedFiles[draggedIndex];
+
+    newPreviewUrls.splice(draggedIndex, 1);
+    newPreviewUrls.splice(dropIndex, 0, draggedUrl);
+
+    if (draggedFile) {
+      newSelectedFiles.splice(draggedIndex, 1);
+      newSelectedFiles.splice(dropIndex, 0, draggedFile);
+    }
+
+    setPreviewUrls(newPreviewUrls);
+    setSelectedFiles(newSelectedFiles);
+    setDraggedIndex(null);
+
+    // If editing existing property and all images are from server, update the order
+    if (property?.id && newPreviewUrls.every(url => !url.startsWith('blob:'))) {
+      try {
+        await propertyAPI.reorderImages(property.id, newPreviewUrls);
+        toast({
+          title: "Succès",
+          description: "L'ordre des images a été mis à jour. La première image est maintenant l'image principale.",
+        });
+      } catch (err) {
+        toast({
+          title: "Erreur",
+          description: "Impossible de réorganiser les images",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -295,28 +375,48 @@ const PropertyForm = ({ property, onSave, onCancel }: PropertyFormProps) => {
             </div>
 
             {previewUrls.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-                {previewUrls.map((url, index) => (
-                  <div key={index} className="relative group">
-                    <img
-                      src={url}
-                      alt={`Preview ${index + 1}`}
-                      className="w-full h-24 object-cover rounded-lg border-2 border-gray-200"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeImage(index)}
-                      className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              <div className="mt-4">
+                <p className="text-sm text-gray-600 mb-2">
+                  {window.innerWidth >= 768 ?
+                    "💡 Glissez-déposez les images pour changer l'ordre. La première image sera l'image principale." :
+                    "La première image est l'image principale."}
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {previewUrls.map((url, index) => (
+                    <div
+                      key={index}
+                      className={`relative group cursor-move ${draggedIndex === index ? 'opacity-50' : ''}`}
+                      draggable={window.innerWidth >= 768}
+                      onDragStart={(e) => handleDragStart(e, index)}
+                      onDragOver={handleDragOver}
+                      onDrop={(e) => handleDrop(e, index)}
+                      onDragEnd={handleDragEnd}
                     >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                    {index === 0 && (
-                      <div className="absolute bottom-1 left-1 bg-blue-500 text-white text-xs px-2 py-1 rounded">
-                        Principale
-                      </div>
-                    )}
-                  </div>
-                ))}
+                      <img
+                        src={url}
+                        alt={`Preview ${index + 1}`}
+                        className="w-full h-24 object-cover rounded-lg border-2 border-gray-200"
+                      />
+                      {window.innerWidth >= 768 && (
+                        <div className="absolute top-1 left-1 bg-gray-800/70 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                          <GripVertical className="w-4 h-4" />
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                      {index === 0 && (
+                        <div className="absolute bottom-1 left-1 bg-blue-500 text-white text-xs px-2 py-1 rounded">
+                          Principale
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>

@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/kevin/Desktop/Projects/main_immo/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

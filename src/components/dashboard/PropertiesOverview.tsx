@@ -16,7 +16,7 @@ interface PropertiesOverviewProps {
 }
 
 const PropertiesOverview = ({ onSelectProperty, onEditProperty }: PropertiesOverviewProps) => {
-  const { properties, loading, error } = useProperties();
+  const { properties, loading, error } = useProperties(undefined, true); // Include inactive properties in dashboard
   const { toast } = useToast();
   const [localProperties, setLocalProperties] = useState<Property[]>([]);
 
