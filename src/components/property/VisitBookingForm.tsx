@@ -52,13 +52,9 @@ const VisitBookingForm: React.FC<VisitBookingFormProps> = ({
     return days;
   }, [weekOffset]);
 
-  // Generate time slots from 9:00 to 16:00 (9-10, 10-11, etc.)
+  // Generate time slots matching backend (9:00 to 17:00, excluding 13:00 for lunch)
   const TIME_SLOTS = useMemo(() => {
-    const slots = [];
-    for (let hour = 9; hour < 17; hour++) {
-      slots.push(`${hour.toString().padStart(2, '0')}:00`);
-    }
-    return slots;
+    return ['09:00', '10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00'];
   }, []);
 
   // Fetch available slots when date changes
