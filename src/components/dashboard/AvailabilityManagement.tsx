@@ -43,32 +43,6 @@ const AvailabilityManagement = () => {
     queryFn: availabilityAPI.getUnavailableDates,
   });
 
-  // Show loading state
-  if (loadingReservations || loadingUnavailable) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="text-lg font-medium">Chargement...</div>
-          <div className="text-sm text-muted-foreground mt-2">Chargement des disponibilités</div>
-        </div>
-      </div>
-    );
-  }
-
-  // Show error state
-  if (reservationsError || unavailableError) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="text-lg font-medium text-destructive">Erreur</div>
-          <div className="text-sm text-muted-foreground mt-2">
-            {reservationsError?.message || unavailableError?.message || 'Impossible de charger les données'}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   // Block date mutation
   const blockDateMutation = useMutation({
     mutationFn: (data: { date: string; timeSlot?: string }) => {
@@ -150,6 +124,32 @@ const AvailabilityManagement = () => {
 
   const canGoPreviousWeek = weekOffset > -4; // Allow going back 4 weeks
   const canGoNextWeek = weekOffset < 8; // Allow going forward 8 weeks
+
+  // Show loading state
+  if (loadingReservations || loadingUnavailable) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="text-lg font-medium">Chargement...</div>
+          <div className="text-sm text-muted-foreground mt-2">Chargement des disponibilités</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (reservationsError || unavailableError) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="text-lg font-medium text-destructive">Erreur</div>
+          <div className="text-sm text-muted-foreground mt-2">
+            {reservationsError?.message || unavailableError?.message || 'Impossible de charger les données'}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
