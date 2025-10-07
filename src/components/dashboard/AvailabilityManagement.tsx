@@ -32,16 +32,42 @@ const AvailabilityManagement = () => {
   }, []);
 
   // Fetch reservations
-  const { data: reservations = [] } = useQuery({
+  const { data: reservations = [], isLoading: loadingReservations, error: reservationsError } = useQuery({
     queryKey: ['reservations'],
     queryFn: () => reservationAPI.getAll(),
   });
 
   // Fetch unavailable dates
-  const { data: unavailableDates = [] } = useQuery({
+  const { data: unavailableDates = [], isLoading: loadingUnavailable, error: unavailableError } = useQuery({
     queryKey: ['unavailableDates'],
     queryFn: availabilityAPI.getUnavailableDates,
   });
+
+  // Show loading state
+  if (loadingReservations || loadingUnavailable) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="text-lg font-medium">Chargement...</div>
+          <div className="text-sm text-muted-foreground mt-2">Chargement des disponibilités</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (reservationsError || unavailableError) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="text-lg font-medium text-destructive">Erreur</div>
+          <div className="text-sm text-muted-foreground mt-2">
+            {reservationsError?.message || unavailableError?.message || 'Impossible de charger les données'}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Block date mutation
   const blockDateMutation = useMutation({
@@ -72,6 +98,16 @@ const AvailabilityManagement = () => {
       toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
     },
   });
+
+  // Get reservation for a specific date and time
+  const getReservationForSlot = (date: Date, timeSlot: string) => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    return reservations.find(res => {
+      const resDate = format(new Date(res.meetingDate), 'yyyy-MM-dd');
+      const resTime = format(new Date(res.meetingDate), 'HH:mm');
+      return resDate === dateStr && resTime === timeSlot && res.status !== 'annulée';
+    });
+  };
 
   // Check if a date/time is blocked
   const isSlotBlocked = (date: Date, timeSlot?: string) => {
