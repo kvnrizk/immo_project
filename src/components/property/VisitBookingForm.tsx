@@ -98,13 +98,9 @@ const VisitBookingForm: React.FC<VisitBookingFormProps> = ({
     setIsSubmitting(true);
 
     try {
-      // Create a proper date object with the selected date and time
-      const [hours, minutes] = selectedTime.split(':');
-      const meetingDateTime = new Date(selectedDate);
-      meetingDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-
-      // Convert to ISO string which includes timezone
-      const meetingDate = meetingDateTime.toISOString();
+      // Create ISO string with local timezone offset
+      const dateStr = format(selectedDate, 'yyyy-MM-dd');
+      const meetingDate = `${dateStr}T${selectedTime}:00.000Z`;
 
       await reservationAPI.createPublic({
         propertyId,

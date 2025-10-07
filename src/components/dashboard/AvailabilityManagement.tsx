@@ -1,11 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Clock, Calendar, ChevronLeft, ChevronRight, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
-import { availabilityAPI, reservationAPI, DayOfWeek } from '@/services/api';
-import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
+import { availabilityAPI, reservationAPI } from '@/services/api';
+import { format, addDays, startOfWeek } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 const AvailabilityManagement = () => {
@@ -72,24 +72,6 @@ const AvailabilityManagement = () => {
       toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
     },
   });
-
-  const dayLabels: Record<string, string> = {
-    'monday': 'Lundi',
-    'tuesday': 'Mardi',
-    'wednesday': 'Mercredi',
-    'thursday': 'Jeudi',
-    'friday': 'Vendredi',
-  };
-
-  // Get reservation for a specific date and time
-  const getReservationForSlot = (date: Date, timeSlot: string) => {
-    const dateStr = format(date, 'yyyy-MM-dd');
-    return reservations.find(res => {
-      const resDate = format(new Date(res.meetingDate), 'yyyy-MM-dd');
-      const resTime = format(new Date(res.meetingDate), 'HH:mm');
-      return resDate === dateStr && resTime === timeSlot && res.status !== 'annulée';
-    });
-  };
 
   // Check if a date/time is blocked
   const isSlotBlocked = (date: Date, timeSlot?: string) => {
@@ -170,64 +152,104 @@ const AvailabilityManagement = () => {
       </div>
 
       <div className="grid gap-6">
-        {/* Reservations View */}
+        {/* Reservations List View */}
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
               <Clock className="w-5 h-5" />
-              <CardTitle>Réservations de la Semaine</CardTitle>
+              <CardTitle>Réservations des Clients</CardTitle>
             </div>
             <CardDescription>
-              Voir toutes les réservations clients pour cette semaine
+              Liste de toutes les visites réservées par les clients
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-6">
-              {weekDays.map((day) => {
-                const dayName = format(day, 'EEEE', { locale: fr });
-                const dayDate = format(day, 'd MMM', { locale: fr });
+            {reservations.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Aucune réservation pour le moment
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {reservations.map((reservation) => {
+                  const meetingDate = new Date(reservation.meetingDate);
+                  const dayName = format(meetingDate, 'EEEE d MMMM yyyy', { locale: fr });
+                  const timeSlot = format(meetingDate, 'HH:mm');
+                  const endHour = meetingDate.getHours() + 1;
 
-                return (
-                  <div key={day.toISOString()} className="space-y-3">
-                    <h4 className="font-semibold text-sm capitalize">
-                      {dayName} {dayDate}
-                    </h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2">
-                      {TIME_SLOTS.map((timeSlot) => {
-                        const reservation = getReservationForSlot(day, timeSlot);
-                        const endHour = parseInt(timeSlot.split(':')[0]) + 1;
-
-                        return (
-                          <div
-                            key={timeSlot}
-                            className={`
-                              relative p-3 rounded-lg text-sm transition-all duration-200
-                              ${
-                                reservation
-                                  ? 'bg-blue-500 text-white shadow-md'
-                                  : 'bg-muted text-muted-foreground'
-                              }
-                            `}
-                          >
-                            <div className="font-medium">
-                              {timeSlot.slice(0, 5)} - {endHour}:00
-                            </div>
-                            {reservation && (
-                              <div className="flex items-center gap-1 mt-1 text-xs">
-                                <User className="w-3 h-3" />
-                                <span className="truncate">
-                                  {reservation.clientName}
-                                </span>
-                              </div>
-                            )}
+                  return (
+                    <div
+                      key={reservation.id}
+                      className="p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                    >
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                        {/* Date & Time */}
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2 min-w-[200px]">
+                            <Calendar className="w-4 h-4 text-muted-foreground" />
+                            <span className="font-medium text-sm capitalize">{dayName}</span>
                           </div>
-                        );
-                      })}
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-sm">{timeSlot} - {endHour.toString().padStart(2, '0')}:00</span>
+                          </div>
+                        </div>
+
+                        {/* Client Info */}
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-2">
+                            <User className="w-4 h-4 text-muted-foreground" />
+                            <span className="font-medium text-sm">{reservation.clientName}</span>
+                          </div>
+
+                          {/* Status Badge */}
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-medium ${
+                              reservation.status === 'en_attente'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : reservation.status === 'confirmée'
+                                ? 'bg-green-100 text-green-800'
+                                : reservation.status === 'annulée'
+                                ? 'bg-red-100 text-red-800'
+                                : 'bg-gray-100 text-gray-800'
+                            }`}
+                          >
+                            {reservation.status}
+                          </span>
+
+                          {/* Property Type Badge */}
+                          <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            {reservation.type}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Property Info */}
+                      {reservation.property && (
+                        <div className="mt-2 text-sm text-muted-foreground">
+                          Bien: {reservation.property.title}
+                        </div>
+                      )}
+
+                      {/* Contact Info & Notes (collapsible details) */}
+                      <details className="mt-2">
+                        <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground">
+                          Voir les détails du contact
+                        </summary>
+                        <div className="mt-2 p-3 bg-muted/50 rounded text-sm space-y-1">
+                          <p>Email: {reservation.clientEmail}</p>
+                          <p>Téléphone: {reservation.clientPhone}</p>
+                          {reservation.notes && (
+                            <p className="mt-2">
+                              <span className="font-medium">Notes:</span> {reservation.notes}
+                            </p>
+                          )}
+                        </div>
+                      </details>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </CardContent>
         </Card>
 
