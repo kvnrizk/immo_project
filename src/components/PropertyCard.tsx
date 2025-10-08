@@ -123,16 +123,16 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
           {description}
         </p>
 
-        <div className="flex justify-between items-center gap-3">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div className="text-2xl font-bold text-primary">
             {price}
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 w-full sm:w-auto">
             <Button
               onClick={handleWhatsApp}
               variant="outline"
               size="sm"
-              className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
+              className="flex-1 sm:flex-none border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
             >
               <MessageCircle className="w-4 h-4 mr-1" />
               WhatsApp
@@ -140,7 +140,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
             <Button
               onClick={handleViewDetails}
               size="sm"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              className="flex-1 sm:flex-none bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               Voir plus
             </Button>

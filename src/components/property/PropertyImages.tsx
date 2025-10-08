@@ -45,7 +45,7 @@ const PropertyImages: React.FC<PropertyImagesProps> = ({
       </div>
       
       {property.images && Array.isArray(property.images) && property.images.length > 1 && (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {property.images.slice(1).map((img, index) => (
             <img
               key={index}
