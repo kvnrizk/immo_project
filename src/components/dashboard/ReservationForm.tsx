@@ -147,7 +147,10 @@ export function ReservationForm({
     if (reservation) {
       const meetingDateTime = new Date(reservation.meetingDate);
       setSelectedDate(meetingDateTime);
-      setSelectedTime(format(meetingDateTime, 'HH:mm'));
+      // Use UTC hours for time slots (time slots are stored in UTC)
+      const hour = meetingDateTime.getUTCHours();
+      const minute = meetingDateTime.getUTCMinutes();
+      setSelectedTime(`${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`);
 
       form.reset({
         propertyId: reservation.propertyId,
@@ -427,8 +430,9 @@ export function ReservationForm({
                               onClick={() => {
                                 if (isAvailable) {
                                   setSelectedTime(timeSlot);
+                                  // Create ISO string in UTC (time slots are in UTC)
                                   const dateStr = format(selectedDate, 'yyyy-MM-dd');
-                                  field.onChange(`${dateStr}T${timeSlot}:00`);
+                                  field.onChange(`${dateStr}T${timeSlot}:00.000Z`);
                                 }
                               }}
                               disabled={!isAvailable}

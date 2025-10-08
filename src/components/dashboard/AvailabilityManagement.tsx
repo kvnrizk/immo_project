@@ -247,8 +247,11 @@ const AvailabilityManagement = () => {
                 {reservations.map((reservation) => {
                   const meetingDate = new Date(reservation.meetingDate);
                   const dayName = format(meetingDate, 'EEEE d MMMM yyyy', { locale: fr });
-                  const timeSlot = format(meetingDate, 'HH:mm');
-                  const endHour = meetingDate.getHours() + 1;
+                  // Use UTC hours to display time (time slots are stored in UTC)
+                  const hour = meetingDate.getUTCHours();
+                  const minute = meetingDate.getUTCMinutes();
+                  const timeSlot = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                  const endHour = hour + 1;
 
                   return (
                     <div

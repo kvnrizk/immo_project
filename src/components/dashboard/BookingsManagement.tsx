@@ -324,9 +324,13 @@ const BookingsManagement = () => {
                             <span>
                               {format(new Date(reservation.meetingDate), 'PPP', { locale: fr })}
                               {' • '}
-                              {format(new Date(reservation.meetingDate), 'HH:mm', { locale: fr })}
-                              {' - '}
-                              {format(new Date(new Date(reservation.meetingDate).getTime() + 60 * 60 * 1000), 'HH:mm', { locale: fr })}
+                              {(() => {
+                                const date = new Date(reservation.meetingDate);
+                                const hour = date.getUTCHours();
+                                const minute = date.getUTCMinutes();
+                                const endHour = hour + 1;
+                                return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')} - ${endHour.toString().padStart(2, '0')}:00`;
+                              })()}
                             </span>
                           </div>
                         </TableCell>
@@ -425,9 +429,13 @@ const BookingsManagement = () => {
                           <span className="text-xs">
                             {format(new Date(reservation.meetingDate), 'PPP', { locale: fr })}
                             {' • '}
-                            {format(new Date(reservation.meetingDate), 'HH:mm', { locale: fr })}
-                            {' - '}
-                            {format(new Date(new Date(reservation.meetingDate).getTime() + 60 * 60 * 1000), 'HH:mm', { locale: fr })}
+                            {(() => {
+                              const date = new Date(reservation.meetingDate);
+                              const hour = date.getUTCHours();
+                              const minute = date.getUTCMinutes();
+                              const endHour = hour + 1;
+                              return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')} - ${endHour.toString().padStart(2, '0')}:00`;
+                            })()}
                           </span>
                         </div>
                       </div>

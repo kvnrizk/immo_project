@@ -98,7 +98,7 @@ const VisitBookingForm: React.FC<VisitBookingFormProps> = ({
     setIsSubmitting(true);
 
     try {
-      // Create ISO string with local timezone offset
+      // Create ISO string in UTC (time slots are in UTC)
       const dateStr = format(selectedDate, 'yyyy-MM-dd');
       const meetingDate = `${dateStr}T${selectedTime}:00.000Z`;
 
