@@ -1,15 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
-import { Menu, X } from 'lucide-react';
+import { Menu, Home, ShoppingBag, Key, Calendar, Mail } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const location = useLocation();
-
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -72,50 +71,98 @@ const Navigation = () => {
 
           {/* Mobile menu button */}
           <div className="md:hidden">
-            <button
-              onClick={toggleMenu}
-              className="text-foreground hover:text-muted-foreground p-2"
-            >
-              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
+            <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+              <SheetTrigger asChild>
+                <button
+                  className="text-foreground hover:text-muted-foreground p-2 transition-colors"
+                  aria-label="Menu"
+                >
+                  <Menu size={24} />
+                </button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[280px] sm:w-[320px]">
+                <SheetHeader className="mb-8">
+                  <SheetTitle className="text-2xl font-bold text-left">
+                    Clés de Paris
+                  </SheetTitle>
+                </SheetHeader>
+
+                <nav className="flex flex-col space-y-1">
+                  <Link
+                    to="/"
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 ${
+                      location.pathname === '/'
+                        ? 'bg-primary text-primary-foreground shadow-md'
+                        : 'text-foreground hover:bg-accent hover:text-accent-foreground'
+                    }`}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Home size={20} />
+                    Accueil
+                  </Link>
+
+                  <Link
+                    to="/buying"
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 ${
+                      location.pathname === '/buying'
+                        ? 'bg-primary text-primary-foreground shadow-md'
+                        : 'text-foreground hover:bg-accent hover:text-accent-foreground'
+                    }`}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <ShoppingBag size={20} />
+                    Achat
+                  </Link>
+
+                  <Link
+                    to="/renting"
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 ${
+                      location.pathname === '/renting'
+                        ? 'bg-primary text-primary-foreground shadow-md'
+                        : 'text-foreground hover:bg-accent hover:text-accent-foreground'
+                    }`}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Key size={20} />
+                    Location
+                  </Link>
+
+                  <Link
+                    to="/short-term"
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 ${
+                      location.pathname === '/short-term'
+                        ? 'bg-primary text-primary-foreground shadow-md'
+                        : 'text-foreground hover:bg-accent hover:text-accent-foreground'
+                    }`}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Calendar size={20} />
+                    Court durée
+                  </Link>
+
+                  <Link
+                    to="/contact"
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 ${
+                      location.pathname === '/contact'
+                        ? 'bg-primary text-primary-foreground shadow-md'
+                        : 'text-foreground hover:bg-accent hover:text-accent-foreground'
+                    }`}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Mail size={20} />
+                    Contact
+                  </Link>
+                </nav>
+
+                <div className="absolute bottom-6 left-6 right-6">
+                  <div className="text-xs text-muted-foreground text-center">
+                    © 2025 Clés de Paris
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
-
-        {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 bg-background border-t">
-              <Link
-                to="/buying"
-                className="block px-3 py-2 text-base font-medium text-foreground hover:text-muted-foreground transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Achat
-              </Link>
-              <Link
-                to="/renting"
-                className="block px-3 py-2 text-base font-medium text-foreground hover:text-muted-foreground transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Location
-              </Link>
-              <Link
-                to="/short-term"
-                className="block px-3 py-2 text-base font-medium text-foreground hover:text-muted-foreground transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Court durée
-              </Link>
-              <Link
-                to="/contact"
-                className="block px-3 py-2 text-base font-medium text-foreground hover:text-muted-foreground transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Contact
-              </Link>
-            </div>
-          </div>
-        )}
       </div>
     </nav>
   );
