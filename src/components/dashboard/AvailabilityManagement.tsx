@@ -1,16 +1,28 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Clock, Calendar, ChevronLeft, ChevronRight, User } from 'lucide-react';
+import { Clock, Calendar, ChevronLeft, ChevronRight, User, X, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import { availabilityAPI, reservationAPI } from '@/services/api';
 import { format, addDays, startOfWeek } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const AvailabilityManagement = () => {
   const queryClient = useQueryClient();
   const [weekOffset, setWeekOffset] = useState(0);
+  const [reservationToDelete, setReservationToDelete] = useState<string | null>(null);
+  const [reservationToCancel, setReservationToCancel] = useState<string | null>(null);
 
   // Generate weekdays (Monday to Friday) for current week
   const weekDays = useMemo(() => {
@@ -67,6 +79,32 @@ const AvailabilityManagement = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['unavailableDates'] });
       toast({ title: 'Date débloquée', description: 'Le créneau est maintenant disponible.' });
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  // Cancel reservation mutation
+  const cancelReservationMutation = useMutation({
+    mutationFn: (id: string) => reservationAPI.update(id, { status: 'annulée' as any }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reservations'] });
+      toast({ title: 'Réservation annulée', description: 'La réservation a été annulée avec succès.' });
+      setReservationToCancel(null);
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  // Delete reservation mutation
+  const deleteReservationMutation = useMutation({
+    mutationFn: reservationAPI.delete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reservations'] });
+      toast({ title: 'Réservation supprimée', description: 'La réservation a été supprimée avec succès.' });
+      setReservationToDelete(null);
     },
     onError: (error: Error) => {
       toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
@@ -231,7 +269,7 @@ const AvailabilityManagement = () => {
                         </div>
 
                         {/* Client Info */}
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4 flex-wrap">
                           <div className="flex items-center gap-2">
                             <User className="w-4 h-4 text-muted-foreground" />
                             <span className="font-medium text-sm">{reservation.clientName}</span>
@@ -256,6 +294,30 @@ const AvailabilityManagement = () => {
                           <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                             {reservation.type}
                           </span>
+
+                          {/* Action Buttons */}
+                          <div className="flex items-center gap-2 ml-auto">
+                            {reservation.status !== 'annulée' && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setReservationToCancel(reservation.id)}
+                                className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                              >
+                                <X className="w-4 h-4 mr-1" />
+                                Annuler
+                              </Button>
+                            )}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setReservationToDelete(reservation.id)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="w-4 h-4 mr-1" />
+                              Supprimer
+                            </Button>
+                          </div>
                         </div>
                       </div>
 
@@ -370,6 +432,50 @@ const AvailabilityManagement = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Cancel Reservation Dialog */}
+      <AlertDialog open={!!reservationToCancel} onOpenChange={() => setReservationToCancel(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Annuler la réservation</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir annuler cette réservation ? Le client sera informé de l'annulation.
+              Le créneau redeviendra disponible pour d'autres réservations.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Retour</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => reservationToCancel && cancelReservationMutation.mutate(reservationToCancel)}
+              className="bg-orange-600 hover:bg-orange-700"
+            >
+              Annuler la réservation
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Reservation Dialog */}
+      <AlertDialog open={!!reservationToDelete} onOpenChange={() => setReservationToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer la réservation</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir supprimer définitivement cette réservation ?
+              Cette action est irréversible et toutes les données seront perdues.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Retour</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => reservationToDelete && deleteReservationMutation.mutate(reservationToDelete)}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Supprimer définitivement
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
