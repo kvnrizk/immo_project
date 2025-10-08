@@ -11,13 +11,16 @@ interface PropertyImagesProps {
   getTypeLabel: (type: string) => string;
 }
 
-const PropertyImages: React.FC<PropertyImagesProps> = ({ 
-  property, 
-  getTypeColor, 
-  getTypeLabel 
+const PropertyImages: React.FC<PropertyImagesProps> = ({
+  property,
+  getTypeColor,
+  getTypeLabel
 }) => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
+  // Use first image from images array, fallback to image field (same as PropertyCard)
+  const principalImage = property.images && property.images.length > 0 ? property.images[0] : property.image;
 
   // Combine main image with additional images
   const allImages = property.images || [property.image];
@@ -31,7 +34,7 @@ const PropertyImages: React.FC<PropertyImagesProps> = ({
     <div className="space-y-4">
       <div className="relative">
         <img
-          src={getImageUrl(property.image)}
+          src={getImageUrl(principalImage)}
           alt={property.title}
           className="w-full h-96 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
           onClick={() => openLightbox(0)}
