@@ -116,7 +116,11 @@ const AvailabilityManagement = () => {
     const dateStr = format(date, 'yyyy-MM-dd');
     return reservations.find(res => {
       const resDate = format(new Date(res.meetingDate), 'yyyy-MM-dd');
-      const resTime = format(new Date(res.meetingDate), 'HH:mm');
+      // Use UTC hours to match time slots (time slots are stored in UTC)
+      const meetingDate = new Date(res.meetingDate);
+      const hour = meetingDate.getUTCHours();
+      const minute = meetingDate.getUTCMinutes();
+      const resTime = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
       return resDate === dateStr && resTime === timeSlot && res.status !== 'annulée';
     });
   };
