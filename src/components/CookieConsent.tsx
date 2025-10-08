@@ -44,15 +44,14 @@ const CookieConsent = () => {
   if (!showBanner) return null;
 
   return (
-    <div className={`fixed inset-0 z-[100] flex items-end justify-center pointer-events-none transition-opacity duration-300 ${isClosing ? 'opacity-0' : 'opacity-100'}`}>
-      {/* Backdrop with gradient */}
+    <div className={`fixed inset-0 z-[100] flex items-end justify-center transition-opacity duration-300 ${isClosing ? 'opacity-0' : 'opacity-100'}`}>
+      {/* Backdrop with gradient - blocks all interaction */}
       <div
-        className={`absolute inset-0 bg-gradient-to-t from-black/30 via-black/10 to-transparent backdrop-blur-[2px] pointer-events-auto transition-opacity duration-500 ${isClosing ? 'opacity-0' : 'opacity-100'}`}
-        onClick={handleRefuse}
+        className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-500 ${isClosing ? 'opacity-0' : 'opacity-100'}`}
       />
 
       {/* Banner */}
-      <div className={`m-4 md:m-8 max-w-5xl w-full pointer-events-auto transform transition-all duration-500 ease-out ${isClosing ? 'translate-y-full opacity-0 scale-95' : 'translate-y-0 opacity-100 scale-100'}`}>
+      <div className={`relative m-4 md:m-8 max-w-5xl w-full transform transition-all duration-500 ease-out ${isClosing ? 'translate-y-full opacity-0 scale-95' : 'translate-y-0 opacity-100 scale-100'}`}>
         <Card className="relative overflow-hidden shadow-2xl border-0 bg-gradient-to-br from-background via-background to-primary/5">
           {/* Decorative elements */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
@@ -103,11 +102,11 @@ const CookieConsent = () => {
                   Accepter tout
                 </Button>
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   onClick={handleRefuse}
-                  className="w-full hover:bg-muted/50 transition-all duration-300"
+                  className="w-full hover:bg-muted/50 transition-all duration-300 border-primary/20"
                 >
-                  Refuser les cookies optionnels
+                  Essentiels uniquement
                 </Button>
               </div>
             </div>

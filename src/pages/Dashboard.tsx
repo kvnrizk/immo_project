@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
@@ -14,11 +14,17 @@ import AvailabilityManagement from '@/components/dashboard/AvailabilityManagemen
 import { Menu } from 'lucide-react';
 
 const Dashboard = () => {
-  const [activeView, setActiveView] = useState('overview');
+  const [activeView, setActiveView] = useState(() => {
+    return localStorage.getItem('dashboardActiveView') || 'overview';
+  });
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [editingProperty, setEditingProperty] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+
+  useEffect(() => {
+    localStorage.setItem('dashboardActiveView', activeView);
+  }, [activeView]);
 
   const handleEditProperty = (property) => {
     setEditingProperty(property);
