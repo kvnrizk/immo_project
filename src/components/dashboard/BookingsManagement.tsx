@@ -322,7 +322,11 @@ const BookingsManagement = () => {
                           <div className="flex items-center gap-2">
                             <Clock className="h-4 w-4 text-muted-foreground" />
                             <span>
-                              {format(new Date(reservation.meetingDate), 'PPp', { locale: fr })}
+                              {format(new Date(reservation.meetingDate), 'PPP', { locale: fr })}
+                              {' • '}
+                              {format(new Date(reservation.meetingDate), 'HH:mm', { locale: fr })}
+                              {' - '}
+                              {format(new Date(new Date(reservation.meetingDate).getTime() + 60 * 60 * 1000), 'HH:mm', { locale: fr })}
                             </span>
                           </div>
                         </TableCell>
@@ -419,7 +423,11 @@ const BookingsManagement = () => {
                         <div className="flex items-center gap-2 text-muted-foreground pt-2">
                           <Clock className="h-4 w-4" />
                           <span className="text-xs">
-                            {format(new Date(reservation.meetingDate), 'PPp', { locale: fr })}
+                            {format(new Date(reservation.meetingDate), 'PPP', { locale: fr })}
+                            {' • '}
+                            {format(new Date(reservation.meetingDate), 'HH:mm', { locale: fr })}
+                            {' - '}
+                            {format(new Date(new Date(reservation.meetingDate).getTime() + 60 * 60 * 1000), 'HH:mm', { locale: fr })}
                           </span>
                         </div>
                       </div>
