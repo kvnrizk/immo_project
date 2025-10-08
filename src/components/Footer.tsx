@@ -57,14 +57,20 @@ const Footer = () => {
           <div className="space-y-4">
             <h4 className="text-lg font-semibold">Contact</h4>
             <div className="space-y-2 text-primary-foreground/80">
-              <p className="flex items-center gap-2">
+              <a
+                href="tel:+33612345678"
+                className="flex items-center gap-2 hover:text-primary-foreground transition-colors cursor-pointer"
+              >
                 <Phone size={16} className="text-black" />
                 +33 6 12 34 56 78
-              </p>
-              <p className="flex items-center gap-2">
+              </a>
+              <a
+                href="mailto:csablouny@gmail.com"
+                className="flex items-center gap-2 hover:text-primary-foreground transition-colors cursor-pointer"
+              >
                 <Mail size={16} className="text-black" />
-                contact@charbelsagency.fr
-              </p>
+                csablouny@gmail.com
+              </a>
               <p className="flex items-center gap-2">
                 <MapPin size={16} className="text-black" />
                 Paris et Île-de-France
