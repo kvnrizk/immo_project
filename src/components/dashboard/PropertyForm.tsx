@@ -203,13 +203,50 @@ const PropertyForm = ({ property, onSave, onCancel }: PropertyFormProps) => {
     setLoading(true);
 
     try {
+      // Format price to ensure it has € symbol
+      const formatPrice = (priceInput: string): string => {
+        if (!priceInput) return '';
+
+        // If already has €, return as is
+        if (priceInput.includes('€')) {
+          return priceInput;
+        }
+
+        // Add € to the end
+        // Format: if number only, add space before €
+        const trimmedPrice = priceInput.trim();
+
+        // Check if it's just a number (with possible spaces or commas)
+        if (/^[\d\s,]+$/.test(trimmedPrice)) {
+          // Format the number with spaces for readability
+          const numericValue = trimmedPrice.replace(/\s/g, '');
+          if (numericValue.length > 3) {
+            // Add space as thousand separator
+            const formatted = numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+            return `${formatted} €`;
+          }
+          return `${trimmedPrice} €`;
+        }
+
+        // If it has /mois, /month, etc., add € before it
+        if (trimmedPrice.match(/\/(mois|month|m)/i)) {
+          const parts = trimmedPrice.split('/');
+          const number = parts[0].trim();
+          const period = parts.slice(1).join('/');
+          return `${number} €/${period}`;
+        }
+
+        // Default: just add € at the end
+        return `${trimmedPrice} €`;
+      };
+
       const propertyData = {
         title: formData.title,
         location: formData.location,
         type: formData.type,
         bedrooms: parseInt(formData.bedrooms) || undefined,
         area: parseInt(formData.area) || undefined,
-        price: formData.price,
+        price: formatPrice(formData.price),
         description: formData.description,
         features: formData.features.split(',').map(f => f.trim()).filter(f => f),
       };
@@ -350,13 +387,22 @@ const PropertyForm = ({ property, onSave, onCancel }: PropertyFormProps) => {
 
             <div className="space-y-2">
               <Label htmlFor="price">Prix *</Label>
-              <Input
-                id="price"
-                value={formData.price}
-                onChange={(e) => handleInputChange('price', e.target.value)}
-                placeholder="250 000€ ou 1 200€/mois"
-                required
-              />
+              <div className="relative">
+                <Input
+                  id="price"
+                  value={formData.price}
+                  onChange={(e) => handleInputChange('price', e.target.value)}
+                  placeholder="250000 ou 1200/mois"
+                  className="pr-8"
+                  required
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
+                  €
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Le symbole € sera ajouté automatiquement
+              </p>
             </div>
           </div>
 
