@@ -14,6 +14,7 @@ const defaultFilters: FilterState = {
   category: 'tous',
   minPrice: 0,
   maxPrice: 2000000,
+  rooms: 'tous',
   bedrooms: 'tous',
   minArea: 0,
   maxArea: 500,
@@ -56,6 +57,10 @@ const AllProperties = () => {
       const price = extractPrice(property.price);
       const matchesPrice = price >= filters.minPrice && price <= filters.maxPrice;
 
+      // Rooms filter
+      const matchesRooms = filters.rooms === 'tous' ||
+        (property.rooms && property.rooms >= parseInt(filters.rooms));
+
       // Bedrooms filter
       const matchesBedrooms = filters.bedrooms === 'tous' ||
         (property.bedrooms && property.bedrooms >= parseInt(filters.bedrooms));
@@ -69,7 +74,7 @@ const AllProperties = () => {
         property.location.toLowerCase().includes(filters.location.toLowerCase());
 
       return matchesSearch && matchesCategory && matchesPrice &&
-             matchesBedrooms && matchesArea && matchesLocation;
+             matchesRooms && matchesBedrooms && matchesArea && matchesLocation;
     });
 
     // Sort properties
@@ -83,6 +88,10 @@ const AllProperties = () => {
           return (a.area || 0) - (b.area || 0);
         case 'area-desc':
           return (b.area || 0) - (a.area || 0);
+        case 'rooms-asc':
+          return (a.rooms || 0) - (b.rooms || 0);
+        case 'rooms-desc':
+          return (b.rooms || 0) - (a.rooms || 0);
         case 'recent':
         default:
           // Assuming newer properties have higher IDs

@@ -7,6 +7,7 @@ export interface Property {
   type: 'vente' | 'location' | 'saisonnier';
   image: string;
   description: string;
+  rooms?: number; // Nombre de pièces
   bedrooms?: number;
   area?: number;
   images?: string[];

@@ -3,7 +3,6 @@ import { Search, Filter, SlidersHorizontal, Bookmark, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
 import {
   Select,
   SelectContent,
@@ -22,6 +21,7 @@ export interface FilterState {
   category: string;
   minPrice: number;
   maxPrice: number;
+  rooms: string;
   bedrooms: string;
   minArea: number;
   maxArea: number;
@@ -57,6 +57,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
     filters.category !== 'tous' ||
     filters.minPrice > 0 ||
     filters.maxPrice < 2000000 ||
+    filters.rooms !== 'tous' ||
     filters.bedrooms !== 'tous' ||
     filters.minArea > 0 ||
     filters.maxArea < 500 ||
@@ -69,13 +70,6 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
     if (filters.category === 'location') return 5000;
     if (filters.category === 'saisonnier') return 500;
     return 2000000; // Default for "tous"
-  };
-
-  const formatPrice = (value: number) => {
-    if (filters.category === 'vente' || (filters.category === 'tous' && value > 10000)) {
-      return `${(value / 1000).toFixed(0)}k €`;
-    }
-    return `${value} €`;
   };
 
   return (
@@ -96,7 +90,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
       </div>
 
       {/* Quick Filters Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {/* Category Filter */}
         <div className="space-y-2">
           <Label>Catégorie</Label>
@@ -110,6 +104,24 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
               <SelectItem value="vente">À vendre</SelectItem>
               <SelectItem value="location">À louer</SelectItem>
               <SelectItem value="saisonnier">Location court durée</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Rooms Filter */}
+        <div className="space-y-2">
+          <Label>Pièces</Label>
+          <Select value={filters.rooms} onValueChange={(value) => updateFilter('rooms', value)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Nombre de pièces" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="tous">Toutes</SelectItem>
+              <SelectItem value="1">1+</SelectItem>
+              <SelectItem value="2">2+</SelectItem>
+              <SelectItem value="3">3+</SelectItem>
+              <SelectItem value="4">4+</SelectItem>
+              <SelectItem value="5">5+</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -145,6 +157,8 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
               <SelectItem value="price-desc">Prix décroissant</SelectItem>
               <SelectItem value="area-asc">Surface croissante</SelectItem>
               <SelectItem value="area-desc">Surface décroissante</SelectItem>
+              <SelectItem value="rooms-asc">Pièces croissant</SelectItem>
+              <SelectItem value="rooms-desc">Pièces décroissant</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -168,7 +182,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
                 placeholder="Min"
                 value={filters.minPrice || ''}
                 onChange={(e) => updateFilter('minPrice', parseInt(e.target.value) || 0)}
-                className="w-32"
+                className="flex-1"
               />
               <span className="text-muted-foreground">à</span>
               <Input
@@ -176,25 +190,8 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
                 placeholder="Max"
                 value={filters.maxPrice === getMaxPriceForCategory() ? '' : filters.maxPrice}
                 onChange={(e) => updateFilter('maxPrice', parseInt(e.target.value) || getMaxPriceForCategory())}
-                className="w-32"
+                className="flex-1"
               />
-            </div>
-            <div className="pt-2">
-              <Slider
-                min={0}
-                max={getMaxPriceForCategory()}
-                step={filters.category === 'vente' ? 10000 : 50}
-                value={[filters.minPrice, filters.maxPrice]}
-                onValueChange={([min, max]) => {
-                  updateFilter('minPrice', min);
-                  updateFilter('maxPrice', max);
-                }}
-                className="w-full"
-              />
-              <div className="flex justify-between mt-2 text-sm text-muted-foreground">
-                <span>{formatPrice(filters.minPrice)}</span>
-                <span>{formatPrice(filters.maxPrice)}</span>
-              </div>
             </div>
           </div>
 
@@ -207,7 +204,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
                 placeholder="Min"
                 value={filters.minArea || ''}
                 onChange={(e) => updateFilter('minArea', parseInt(e.target.value) || 0)}
-                className="w-32"
+                className="flex-1"
               />
               <span className="text-muted-foreground">à</span>
               <Input
@@ -215,25 +212,8 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
                 placeholder="Max"
                 value={filters.maxArea === 500 ? '' : filters.maxArea}
                 onChange={(e) => updateFilter('maxArea', parseInt(e.target.value) || 500)}
-                className="w-32"
+                className="flex-1"
               />
-            </div>
-            <div className="pt-2">
-              <Slider
-                min={0}
-                max={500}
-                step={5}
-                value={[filters.minArea, filters.maxArea]}
-                onValueChange={([min, max]) => {
-                  updateFilter('minArea', min);
-                  updateFilter('maxArea', max);
-                }}
-                className="w-full"
-              />
-              <div className="flex justify-between mt-2 text-sm text-muted-foreground">
-                <span>{filters.minArea} m²</span>
-                <span>{filters.maxArea} m²</span>
-              </div>
             </div>
           </div>
 
