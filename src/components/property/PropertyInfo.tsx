@@ -65,12 +65,14 @@ const PropertyInfo: React.FC<PropertyInfoProps> = ({ property }) => {
         <h1 className="text-3xl font-bold text-foreground mb-2">
           {property.title}
         </h1>
-        <div className="flex items-center text-muted-foreground mb-4">
-          <MapPin className="w-4 h-4 mr-2" />
-          {property.location}
-        </div>
-        <div className="text-3xl font-bold text-primary">
-          {property.price}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center text-muted-foreground">
+            <MapPin className="w-4 h-4 mr-2" />
+            {property.location}
+          </div>
+          <div className="text-3xl font-bold text-primary">
+            {property.price}
+          </div>
         </div>
       </div>
 
