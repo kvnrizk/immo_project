@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Filter, SlidersHorizontal, Bookmark, X } from 'lucide-react';
+import { Search, Filter, Bookmark, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -34,6 +34,7 @@ interface SearchFiltersProps {
   onFiltersChange: (filters: FilterState) => void;
   onSavePreferences: () => void;
   onLoadPreferences: () => void;
+  onDeletePreferences: () => void;
   onClearFilters: () => void;
   hasSavedPreferences: boolean;
 }
@@ -43,6 +44,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
   onFiltersChange,
   onSavePreferences,
   onLoadPreferences,
+  onDeletePreferences,
   onClearFilters,
   hasSavedPreferences,
 }) => {
@@ -61,8 +63,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
     filters.bedrooms !== 'tous' ||
     filters.minArea > 0 ||
     filters.maxArea < 500 ||
-    filters.location !== '' ||
-    filters.sortBy !== 'recent';
+    filters.location !== '';
 
   // Determine max price based on category
   const getMaxPriceForCategory = () => {
@@ -90,7 +91,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
       </div>
 
       {/* Quick Filters Row */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Category Filter */}
         <div className="space-y-2">
           <Label>Catégorie</Label>
@@ -139,26 +140,6 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
               <SelectItem value="2">2+</SelectItem>
               <SelectItem value="3">3+</SelectItem>
               <SelectItem value="4">4+</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Sort By */}
-        <div className="space-y-2">
-          <Label>Trier par</Label>
-          <Select value={filters.sortBy} onValueChange={(value) => updateFilter('sortBy', value)}>
-            <SelectTrigger>
-              <SlidersHorizontal size={16} className="mr-2" />
-              <SelectValue placeholder="Trier par" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="recent">Plus récents</SelectItem>
-              <SelectItem value="price-asc">Prix croissant</SelectItem>
-              <SelectItem value="price-desc">Prix décroissant</SelectItem>
-              <SelectItem value="area-asc">Surface croissante</SelectItem>
-              <SelectItem value="area-desc">Surface décroissante</SelectItem>
-              <SelectItem value="rooms-asc">Pièces croissant</SelectItem>
-              <SelectItem value="rooms-desc">Pièces décroissant</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -243,10 +224,16 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
           Sauvegarder la recherche
         </Button>
         {hasSavedPreferences && (
-          <Button variant="secondary" onClick={onLoadPreferences} className="flex items-center gap-2">
-            <Bookmark size={16} className="fill-current" />
-            Charger la recherche
-          </Button>
+          <>
+            <Button variant="secondary" onClick={onLoadPreferences} className="flex items-center gap-2">
+              <Bookmark size={16} className="fill-current" />
+              Charger la recherche
+            </Button>
+            <Button variant="destructive" onClick={onDeletePreferences} className="flex items-center gap-2">
+              <X size={16} />
+              Supprimer la recherche
+            </Button>
+          </>
         )}
       </div>
     </div>

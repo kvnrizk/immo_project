@@ -150,6 +150,24 @@ const AllProperties = () => {
     });
   };
 
+  // Delete saved preferences
+  const handleDeletePreferences = () => {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      setHasSavedPreferences(false);
+      toast({
+        title: "Recherche supprimée",
+        description: "Vos préférences sauvegardées ont été supprimées.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer vos préférences.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -191,6 +209,7 @@ const AllProperties = () => {
           onFiltersChange={setFilters}
           onSavePreferences={handleSavePreferences}
           onLoadPreferences={handleLoadPreferences}
+          onDeletePreferences={handleDeletePreferences}
           onClearFilters={handleClearFilters}
           hasSavedPreferences={hasSavedPreferences}
         />
