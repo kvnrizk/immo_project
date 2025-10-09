@@ -180,11 +180,11 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
           )}
         </div>
 
-        <p className="text-muted-foreground text-sm line-clamp-2">
+        <p className="text-muted-foreground text-sm line-clamp-2 min-h-[2.5rem]">
           {description}
         </p>
 
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-2">
           <div className="text-2xl font-bold text-primary">
             {price}
           </div>
