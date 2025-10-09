@@ -4,8 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, Heart, GitCompare } from 'lucide-react';
 import { getImageUrl } from '@/utils/imageUrl';
+import { useFavorites } from '@/contexts/FavoritesContext';
+import { useComparison } from '@/contexts/ComparisonContext';
+import { toast } from 'sonner';
 
 interface PropertyCardProps {
   id: number;
@@ -33,9 +36,14 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
   area
 }) => {
   const navigate = useNavigate();
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const { isInComparison, toggleComparison, comparisonList, maxItems } = useComparison();
 
   // Use first image from images array, fallback to image field
   const thumbnailImage = images && images.length > 0 ? images[0] : image;
+
+  // Property object for context operations
+  const property = { id, title, price, location, type, image, images, description, bedrooms, area };
 
   const getTypeColor = (type: string) => {
     switch (type) {
@@ -86,6 +94,28 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
     navigate(`/property/${id}`);
   };
 
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    toggleFavorite(property);
+    toast.success(
+      isFavorite(id) ? 'Retiré des favoris' : 'Ajouté aux favoris',
+      { duration: 2000 }
+    );
+  };
+
+  const handleComparisonClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const success = toggleComparison(property);
+    if (!success && !isInComparison(id)) {
+      toast.error(`Vous pouvez comparer jusqu'à ${maxItems} propriétés maximum`, { duration: 3000 });
+    } else {
+      toast.success(
+        isInComparison(id) ? 'Retiré de la comparaison' : 'Ajouté à la comparaison',
+        { duration: 2000 }
+      );
+    }
+  };
+
   return (
     <Card 
       className="group hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer"
@@ -100,6 +130,37 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
         <Badge className={`absolute top-4 left-4 ${getTypeColor(type)}`}>
           {getTypeLabel(type)}
         </Badge>
+
+        {/* Favorite and Comparison buttons */}
+        <div className="absolute top-4 right-4 flex gap-2">
+          <Button
+            size="icon"
+            variant="secondary"
+            className={`rounded-full shadow-lg transition-all ${
+              isFavorite(id)
+                ? 'bg-red-500 hover:bg-red-600 text-white'
+                : 'bg-white/90 hover:bg-white text-gray-700'
+            }`}
+            onClick={handleFavoriteClick}
+            title={isFavorite(id) ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+          >
+            <Heart className={`w-4 h-4 ${isFavorite(id) ? 'fill-current' : ''}`} />
+          </Button>
+
+          <Button
+            size="icon"
+            variant="secondary"
+            className={`rounded-full shadow-lg transition-all ${
+              isInComparison(id)
+                ? 'bg-primary hover:bg-primary/90 text-primary-foreground'
+                : 'bg-white/90 hover:bg-white text-gray-700'
+            }`}
+            onClick={handleComparisonClick}
+            title={isInComparison(id) ? 'Retirer de la comparaison' : 'Ajouter à la comparaison'}
+          >
+            <GitCompare className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
       
       <CardContent className="p-6 space-y-4">

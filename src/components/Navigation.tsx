@@ -1,14 +1,22 @@
 
 import React, { useState, useEffect } from 'react';
-import { Menu, Home, ShoppingBag, Key, Calendar, Mail } from 'lucide-react';
+import { Menu, Home, ShoppingBag, Key, Calendar, Mail, Heart, GitCompare } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useFavorites } from '@/contexts/FavoritesContext';
+import { useComparison } from '@/contexts/ComparisonContext';
+import PropertyComparison from '@/components/PropertyComparison';
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [comparisonOpen, setComparisonOpen] = useState(false);
   const location = useLocation();
+  const { favorites } = useFavorites();
+  const { comparisonList } = useComparison();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -40,8 +48,8 @@ const Navigation = () => {
           </div>
           
           {/* Desktop Navigation */}
-          <div className="hidden md:block">
-            <div className="ml-10 flex items-baseline space-x-8">
+          <div className="hidden md:flex items-center gap-6">
+            <div className="flex items-baseline space-x-8">
               <Link
                 to="/buying"
                 className="text-foreground hover:text-muted-foreground px-3 py-2 text-sm font-medium transition-colors"
@@ -66,6 +74,35 @@ const Navigation = () => {
               >
                 Contact
               </Link>
+            </div>
+
+            {/* Favorites and Comparison Actions */}
+            <div className="flex items-center gap-2 border-l pl-6">
+              <Link to="/favorites">
+                <Button variant="ghost" size="sm" className="relative">
+                  <Heart className="w-5 h-5" />
+                  {favorites.length > 0 && (
+                    <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
+                      {favorites.length}
+                    </Badge>
+                  )}
+                </Button>
+              </Link>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                className="relative"
+                onClick={() => setComparisonOpen(true)}
+                disabled={comparisonList.length === 0}
+              >
+                <GitCompare className="w-5 h-5" />
+                {comparisonList.length > 0 && (
+                  <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
+                    {comparisonList.length}
+                  </Badge>
+                )}
+              </Button>
             </div>
           </div>
 
@@ -152,6 +189,47 @@ const Navigation = () => {
                     <Mail size={20} />
                     Contact
                   </Link>
+
+                  <div className="border-t my-2 pt-2">
+                    <Link
+                      to="/favorites"
+                      className={`flex items-center justify-between px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 ${
+                        location.pathname === '/favorites'
+                          ? 'bg-primary text-primary-foreground shadow-md'
+                          : 'text-foreground hover:bg-accent hover:text-accent-foreground'
+                      }`}
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Heart size={20} />
+                        Favoris
+                      </div>
+                      {favorites.length > 0 && (
+                        <Badge variant="secondary">
+                          {favorites.length}
+                        </Badge>
+                      )}
+                    </Link>
+
+                    <button
+                      className="w-full flex items-center justify-between px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 text-foreground hover:bg-accent hover:text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={() => {
+                        setComparisonOpen(true);
+                        setIsMenuOpen(false);
+                      }}
+                      disabled={comparisonList.length === 0}
+                    >
+                      <div className="flex items-center gap-3">
+                        <GitCompare size={20} />
+                        Comparer
+                      </div>
+                      {comparisonList.length > 0 && (
+                        <Badge variant="secondary">
+                          {comparisonList.length}
+                        </Badge>
+                      )}
+                    </button>
+                  </div>
                 </nav>
 
                 <div className="absolute bottom-6 left-6 right-6">
@@ -164,6 +242,9 @@ const Navigation = () => {
           </div>
         </div>
       </div>
+
+      {/* Property Comparison Modal */}
+      <PropertyComparison open={comparisonOpen} onOpenChange={setComparisonOpen} />
     </nav>
   );
 };

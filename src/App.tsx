@@ -18,7 +18,10 @@ import NotFound from "./pages/NotFound";
 import CookiePolicy from "./pages/CookiePolicy";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./contexts/AuthContext";
+import { FavoritesProvider } from "./contexts/FavoritesContext";
+import { ComparisonProvider } from "./contexts/ComparisonContext";
 import CookieConsent from "./components/CookieConsent";
+import Favorites from "./pages/Favorites";
 
 const queryClient = new QueryClient();
 
@@ -35,32 +38,37 @@ function ScrollToTop() {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <ScrollToTop />
-          <CookieConsent />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/property/:id" element={<PropertyDetails />} />
-            <Route path="/properties" element={<AllProperties />} />
-            <Route path="/buying" element={<BuyingPage />} />
-            <Route path="/renting" element={<RentingPage />} />
-            <Route path="/short-term" element={<ShortTermPage />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/politique-cookies" element={<CookiePolicy />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <FavoritesProvider>
+        <ComparisonProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <ScrollToTop />
+              <CookieConsent />
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/property/:id" element={<PropertyDetails />} />
+                <Route path="/properties" element={<AllProperties />} />
+                <Route path="/buying" element={<BuyingPage />} />
+                <Route path="/renting" element={<RentingPage />} />
+                <Route path="/short-term" element={<ShortTermPage />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/favorites" element={<Favorites />} />
+                <Route path="/politique-cookies" element={<CookiePolicy />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </ComparisonProvider>
+      </FavoritesProvider>
     </AuthProvider>
   </QueryClientProvider>
 );
