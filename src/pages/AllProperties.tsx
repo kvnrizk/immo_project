@@ -1,63 +1,145 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Filter, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import PropertyCard from '@/components/PropertyCard';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import SearchFilters, { FilterState } from '@/components/SearchFilters';
 import { useProperties } from '@/hooks/useProperties';
+import { useToast } from '@/hooks/use-toast';
+
+const STORAGE_KEY = 'propertySearchPreferences';
+
+const defaultFilters: FilterState = {
+  searchTerm: '',
+  category: 'tous',
+  minPrice: 0,
+  maxPrice: 2000000,
+  bedrooms: 'tous',
+  minArea: 0,
+  maxArea: 500,
+  location: '',
+  sortBy: 'recent',
+};
 
 const AllProperties = () => {
-  // Fetch properties from database
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('tous');
-  const [priceRange, setPriceRange] = useState('tous');
+  const [filters, setFilters] = useState<FilterState>(defaultFilters);
+  const [hasSavedPreferences, setHasSavedPreferences] = useState(false);
   const { properties, loading, error } = useProperties();
+  const { toast } = useToast();
 
   const allProperties = properties || [];
 
-  const filteredProperties = useMemo(() => {
-    return allProperties.filter(property => {
-      const matchesSearch = property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           property.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           property.description.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesCategory = selectedCategory === 'tous' || property.type === selectedCategory;
-      
-      const matchesPriceRange = (() => {
-        if (priceRange === 'tous') return true;
-        
-        // Extract numeric price for comparison
-        const numericPrice = parseInt(property.price.replace(/[^\d]/g, ''));
-        
-        switch (priceRange) {
-          case 'moins-200k':
-            return property.type === 'vente' && numericPrice < 200000;
-          case '200k-500k':
-            return property.type === 'vente' && numericPrice >= 200000 && numericPrice <= 500000;
-          case 'plus-500k':
-            return property.type === 'vente' && numericPrice > 500000;
-          case 'moins-1000':
-            return (property.type === 'location' || property.type === 'saisonnier') && numericPrice < 1000;
-          case '1000-2000':
-            return (property.type === 'location' || property.type === 'saisonnier') && numericPrice >= 1000 && numericPrice <= 2000;
-          case 'plus-2000':
-            return (property.type === 'location' || property.type === 'saisonnier') && numericPrice > 2000;
-          default:
-            return true;
-        }
-      })();
-      
-      return matchesSearch && matchesCategory && matchesPriceRange;
+  // Check for saved preferences on mount
+  useEffect(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    setHasSavedPreferences(!!saved);
+  }, []);
+
+  // Extract numeric price from string (handles "€", "/mois", "/nuit")
+  const extractPrice = (priceString: string): number => {
+    return parseInt(priceString.replace(/[^\d]/g, '')) || 0;
+  };
+
+  // Filter and sort properties
+  const filteredAndSortedProperties = useMemo(() => {
+    let filtered = allProperties.filter(property => {
+      // Search filter
+      const matchesSearch = !filters.searchTerm ||
+        property.title.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
+        property.location.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
+        property.description.toLowerCase().includes(filters.searchTerm.toLowerCase());
+
+      // Category filter
+      const matchesCategory = filters.category === 'tous' || property.type === filters.category;
+
+      // Price filter
+      const price = extractPrice(property.price);
+      const matchesPrice = price >= filters.minPrice && price <= filters.maxPrice;
+
+      // Bedrooms filter
+      const matchesBedrooms = filters.bedrooms === 'tous' ||
+        (property.bedrooms && property.bedrooms >= parseInt(filters.bedrooms));
+
+      // Area filter
+      const matchesArea = !property.area ||
+        (property.area >= filters.minArea && property.area <= filters.maxArea);
+
+      // Location filter
+      const matchesLocation = !filters.location ||
+        property.location.toLowerCase().includes(filters.location.toLowerCase());
+
+      return matchesSearch && matchesCategory && matchesPrice &&
+             matchesBedrooms && matchesArea && matchesLocation;
     });
-  }, [searchTerm, selectedCategory, priceRange, allProperties]);
+
+    // Sort properties
+    filtered.sort((a, b) => {
+      switch (filters.sortBy) {
+        case 'price-asc':
+          return extractPrice(a.price) - extractPrice(b.price);
+        case 'price-desc':
+          return extractPrice(b.price) - extractPrice(a.price);
+        case 'area-asc':
+          return (a.area || 0) - (b.area || 0);
+        case 'area-desc':
+          return (b.area || 0) - (a.area || 0);
+        case 'recent':
+        default:
+          // Assuming newer properties have higher IDs
+          return b.id - a.id;
+      }
+    });
+
+    return filtered;
+  }, [filters, allProperties]);
+
+  // Save preferences to localStorage
+  const handleSavePreferences = () => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(filters));
+      setHasSavedPreferences(true);
+      toast({
+        title: "Recherche sauvegardée",
+        description: "Vos préférences de recherche ont été enregistrées.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de sauvegarder vos préférences.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Load preferences from localStorage
+  const handleLoadPreferences = () => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const savedFilters = JSON.parse(saved);
+        setFilters(savedFilters);
+        toast({
+          title: "Recherche chargée",
+          description: "Vos préférences ont été restaurées.",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger vos préférences.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Clear all filters
+  const handleClearFilters = () => {
+    setFilters(defaultFilters);
+    toast({
+      title: "Filtres réinitialisés",
+      description: "Tous les filtres ont été effacés.",
+    });
+  };
 
   if (loading) {
     return (
@@ -74,19 +156,6 @@ const AllProperties = () => {
       </div>
     );
   }
-
-  const getTypeLabel = (type: string) => {
-    switch (type) {
-      case 'vente':
-        return 'À vendre';
-      case 'location':
-        return 'À louer';
-      case 'saisonnier':
-        return 'Location court durée';
-      default:
-        return 'Tous';
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -106,80 +175,28 @@ const AllProperties = () => {
         </div>
       </div>
 
-      {/* Filtres et recherche */}
+      {/* Filters and Search */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-card rounded-lg border p-6 mb-8">
-          <div className="flex flex-col lg:flex-row gap-4">
-            {/* Barre de recherche */}
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
-              <Input
-                placeholder="Rechercher par titre, lieu ou description..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+        <SearchFilters
+          filters={filters}
+          onFiltersChange={setFilters}
+          onSavePreferences={handleSavePreferences}
+          onLoadPreferences={handleLoadPreferences}
+          onClearFilters={handleClearFilters}
+          hasSavedPreferences={hasSavedPreferences}
+        />
 
-            {/* Filtre par catégorie */}
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="lg:w-48">
-                <Filter size={16} className="mr-2" />
-                <SelectValue placeholder="Catégorie" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="tous">Toutes catégories</SelectItem>
-                <SelectItem value="vente">À vendre</SelectItem>
-                <SelectItem value="location">À louer</SelectItem>
-                <SelectItem value="saisonnier">Location court durée</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* Filtre par prix */}
-            <Select value={priceRange} onValueChange={setPriceRange}>
-              <SelectTrigger className="lg:w-48">
-                <SelectValue placeholder="Gamme de prix" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="tous">Tous les prix</SelectItem>
-                <SelectItem value="moins-200k">Moins de 200k €</SelectItem>
-                <SelectItem value="200k-500k">200k - 500k €</SelectItem>
-                <SelectItem value="plus-500k">Plus de 500k €</SelectItem>
-                <SelectItem value="moins-1000">Moins de 1000 €</SelectItem>
-                <SelectItem value="1000-2000">1000 - 2000 €</SelectItem>
-                <SelectItem value="plus-2000">Plus de 2000 €</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Bouton pour réinitialiser les filtres */}
-          {(searchTerm || selectedCategory !== 'tous' || priceRange !== 'tous') && (
-            <div className="mt-4">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setSearchTerm('');
-                  setSelectedCategory('tous');
-                  setPriceRange('tous');
-                }}
-              >
-                Réinitialiser les filtres
-              </Button>
-            </div>
-          )}
-        </div>
-
-        {/* Résultats */}
-        <div className="mb-6">
-          <p className="text-muted-foreground">
-            {filteredProperties.length} bien{filteredProperties.length !== 1 ? 's' : ''} trouvé{filteredProperties.length !== 1 ? 's' : ''}
+        {/* Results Count */}
+        <div className="my-6">
+          <p className="text-muted-foreground text-lg">
+            {filteredAndSortedProperties.length} bien{filteredAndSortedProperties.length !== 1 ? 's' : ''} trouvé{filteredAndSortedProperties.length !== 1 ? 's' : ''}
           </p>
         </div>
 
-        {/* Grille des biens */}
-        {filteredProperties.length > 0 ? (
+        {/* Properties Grid */}
+        {filteredAndSortedProperties.length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredProperties.map((property) => (
+            {filteredAndSortedProperties.map((property) => (
               <PropertyCard
                 key={property.id}
                 {...property}

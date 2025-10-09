@@ -1,16 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Read(//c/Users/kevin/Desktop/Projects/main_immo/**)",
-      "Bash(cat:*)",
-      "Bash(python3:*)",
-      "Bash(python:*)",
-      "Bash(npm run build:*)",
-      "mcp__ide__getDiagnostics",
-      "WebFetch(domain:immo-project-ten.vercel.app)",
-      "Bash(npm run start:dev:*)",
-      "Bash(git add:*)",
-      "WebSearch"
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []
