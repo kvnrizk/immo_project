@@ -224,16 +224,22 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
           Sauvegarder la recherche
         </Button>
         {hasSavedPreferences && (
-          <>
-            <Button variant="secondary" onClick={onLoadPreferences} className="flex items-center gap-2">
+          <div className="relative">
+            <Button variant="secondary" onClick={onLoadPreferences} className="flex items-center gap-2 pr-8">
               <Bookmark size={16} className="fill-current" />
               Charger la recherche
             </Button>
-            <Button variant="destructive" onClick={onDeletePreferences} className="flex items-center gap-2">
-              <X size={16} />
-              Supprimer la recherche
-            </Button>
-          </>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDeletePreferences();
+              }}
+              className="absolute top-1 right-1 p-1 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+              title="Supprimer la recherche sauvegardée"
+            >
+              <X size={14} />
+            </button>
+          </div>
         )}
       </div>
     </div>
