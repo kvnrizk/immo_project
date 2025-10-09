@@ -193,7 +193,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
               onClick={handleWhatsApp}
               variant="outline"
               size="sm"
-              className="flex-1 sm:flex-none border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
+              className="flex-1 sm:flex-none border-gray-700 text-gray-800 hover:bg-gray-800 hover:text-white"
             >
               <MessageCircle className="w-4 h-4 mr-1" />
               WhatsApp
