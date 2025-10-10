@@ -184,11 +184,11 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
           {description}
         </p>
 
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-2">
-          <div className="text-2xl font-bold text-primary whitespace-nowrap">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-2 border-t">
+          <div className="text-2xl font-bold text-primary whitespace-nowrap min-w-[140px]">
             {price}
           </div>
-          <div className="flex gap-2 w-full sm:w-auto">
+          <div className="flex gap-2 w-full sm:w-auto sm:flex-shrink-0">
             <Button
               onClick={handleWhatsApp}
               variant="outline"

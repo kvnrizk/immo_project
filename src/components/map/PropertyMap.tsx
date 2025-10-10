@@ -52,6 +52,32 @@ const PropertyMap: React.FC<PropertyMapProps> = ({ properties }) => {
 
   return (
     <div className="relative w-full h-[600px] rounded-lg overflow-hidden border">
+      <style>{`
+        .mapboxgl-popup-close-button {
+          font-size: 24px;
+          padding: 0 8px;
+          right: 4px;
+          top: 4px;
+          color: #64748b;
+          z-index: 10;
+        }
+        .mapboxgl-popup-close-button:hover {
+          background-color: #f1f5f9;
+          color: #0f172a;
+        }
+        .mapboxgl-popup-content {
+          padding: 0 !important;
+          box-shadow: none !important;
+          background: transparent !important;
+        }
+        .mapboxgl-popup-tip {
+          display: none !important;
+        }
+        .property-popup .mapboxgl-popup-content {
+          border-radius: 0.5rem;
+          overflow: hidden;
+        }
+      `}</style>
       <Map
         {...viewState}
         onMove={evt => setViewState(evt.viewState)}
@@ -71,7 +97,10 @@ const PropertyMap: React.FC<PropertyMapProps> = ({ properties }) => {
             anchor="bottom"
             onClick={(e) => {
               e.originalEvent.stopPropagation();
-              setSelectedProperty(property);
+              // Toggle: if clicking same marker, keep it open; if different, switch
+              if (selectedProperty?.id !== property.id) {
+                setSelectedProperty(property);
+              }
             }}
           >
             <div className="cursor-pointer group relative">
