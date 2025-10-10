@@ -117,11 +117,11 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
   };
 
   return (
-    <Card 
-      className="group hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer"
+    <Card
+      className="group hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col"
       onClick={handleViewDetails}
     >
-      <div className="relative">
+      <div className="relative flex-shrink-0">
         <img
           src={getImageUrl(thumbnailImage)}
           alt={title}
@@ -162,38 +162,40 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
           </Button>
         </div>
       </div>
-      
-      <CardContent className="p-6 space-y-4">
-        <div>
-          <h3 className="text-xl font-semibold text-foreground group-hover:text-primary transition-colors">
-            {title}
-          </h3>
-          <p className="text-muted-foreground">{location}</p>
+
+      <CardContent className="p-6 flex flex-col flex-grow">
+        <div className="flex-grow space-y-4">
+          <div>
+            <h3 className="text-xl font-semibold text-foreground group-hover:text-primary transition-colors">
+              {title}
+            </h3>
+            <p className="text-muted-foreground min-h-[3rem] line-clamp-2">{location}</p>
+          </div>
+
+          <div className="flex justify-between items-center text-sm text-muted-foreground">
+            {bedrooms && (
+              <span>{bedrooms} chambre{bedrooms > 1 ? 's' : ''}</span>
+            )}
+            {area && (
+              <span>{area} m²</span>
+            )}
+          </div>
+
+          <p className="text-muted-foreground text-sm line-clamp-2 min-h-[2.5rem]">
+            {description}
+          </p>
         </div>
 
-        <div className="flex justify-between items-center text-sm text-muted-foreground">
-          {bedrooms && (
-            <span>{bedrooms} chambre{bedrooms > 1 ? 's' : ''}</span>
-          )}
-          {area && (
-            <span>{area} m²</span>
-          )}
-        </div>
-
-        <p className="text-muted-foreground text-sm line-clamp-2 min-h-[2.5rem]">
-          {description}
-        </p>
-
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-2 border-t">
-          <div className="text-2xl font-bold text-primary whitespace-nowrap min-w-[140px]">
+        <div className="flex flex-col gap-3 pt-4 mt-4 border-t">
+          <div className="text-2xl font-bold text-primary">
             {price}
           </div>
-          <div className="flex gap-2 w-full sm:w-auto sm:flex-shrink-0">
+          <div className="flex gap-2">
             <Button
               onClick={handleWhatsApp}
               variant="outline"
               size="sm"
-              className="flex-1 sm:flex-none border-gray-700 text-gray-800 hover:bg-gray-800 hover:text-white"
+              className="flex-1 border-gray-700 text-gray-800 hover:bg-gray-800 hover:text-white"
             >
               <MessageCircle className="w-4 h-4 mr-1" />
               WhatsApp
@@ -201,7 +203,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
             <Button
               onClick={handleViewDetails}
               size="sm"
-              className="flex-1 sm:flex-none bg-primary hover:bg-primary/90 text-primary-foreground"
+              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               Voir plus
             </Button>

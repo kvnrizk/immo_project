@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Map, { Marker, Popup, NavigationControl, FullscreenControl } from 'react-map-gl';
 import { Property } from '@/data/PropertyData';
 import PropertyMapPopup from './PropertyMapPopup';
@@ -10,16 +10,40 @@ interface PropertyMapProps {
 
 const PropertyMap: React.FC<PropertyMapProps> = ({ properties }) => {
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
-  const [viewState, setViewState] = useState({
-    longitude: 2.3522,
-    latitude: 48.8566,
-    zoom: 11
-  });
 
   // Filter properties that have coordinates
   const mappableProperties = useMemo(() => {
     return properties.filter(property => property.coordinates);
   }, [properties]);
+
+  // Calculate map center based on properties
+  const initialViewState = useMemo(() => {
+    if (mappableProperties.length === 0) {
+      // Default to Paris if no properties with coordinates
+      return {
+        longitude: 2.3522,
+        latitude: 48.8566,
+        zoom: 11
+      };
+    }
+
+    // Calculate center from all property coordinates
+    const avgLng = mappableProperties.reduce((sum, prop) => sum + prop.coordinates!.lng, 0) / mappableProperties.length;
+    const avgLat = mappableProperties.reduce((sum, prop) => sum + prop.coordinates!.lat, 0) / mappableProperties.length;
+
+    return {
+      longitude: avgLng,
+      latitude: avgLat,
+      zoom: 11
+    };
+  }, [mappableProperties]);
+
+  const [viewState, setViewState] = useState(initialViewState);
+
+  // Update view state when properties change
+  useEffect(() => {
+    setViewState(initialViewState);
+  }, [initialViewState]);
 
   // Get marker color based on property type
   const getMarkerColor = (type: string) => {
