@@ -185,7 +185,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
         </p>
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-2">
-          <div className="text-2xl font-bold text-primary">
+          <div className="text-2xl font-bold text-primary whitespace-nowrap">
             {price}
           </div>
           <div className="flex gap-2 w-full sm:w-auto">
