@@ -11,9 +11,9 @@ interface PropertyMapProps {
 const PropertyMap: React.FC<PropertyMapProps> = ({ properties }) => {
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [viewState, setViewState] = useState({
-    longitude: 4.8357,
-    latitude: 45.7640,
-    zoom: 12
+    longitude: 2.3522,
+    latitude: 48.8566,
+    zoom: 11
   });
 
   // Filter properties that have coordinates
