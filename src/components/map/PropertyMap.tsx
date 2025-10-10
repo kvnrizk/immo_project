@@ -163,6 +163,7 @@ const PropertyMap: React.FC<PropertyMapProps> = ({ properties }) => {
             closeButton={true}
             closeOnClick={false}
             offset={25}
+            maxWidth="500px"
             className="property-popup"
           >
             <PropertyMapPopup property={selectedProperty} />

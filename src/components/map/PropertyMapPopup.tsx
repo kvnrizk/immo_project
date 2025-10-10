@@ -49,7 +49,7 @@ const PropertyMapPopup: React.FC<PropertyMapPopupProps> = ({ property }) => {
     : property.image;
 
   return (
-    <div className="w-96 bg-background rounded-lg overflow-hidden shadow-lg">
+    <div className="min-w-[400px] max-w-[450px] bg-background rounded-lg overflow-hidden shadow-lg">
       {/* Image */}
       <div className="relative h-48">
         <img
