@@ -1,11 +1,13 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Grid3x3, Map as MapIcon } from 'lucide-react';
 import PropertyCard from '@/components/PropertyCard';
+import PropertyMap from '@/components/map/PropertyMap';
 import SearchFilters, { FilterState } from '@/components/SearchFilters';
 import { useProperties } from '@/hooks/useProperties';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
 
 const STORAGE_KEY = 'propertySearchPreferences';
 
@@ -25,6 +27,7 @@ const defaultFilters: FilterState = {
 const AllProperties = () => {
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [hasSavedPreferences, setHasSavedPreferences] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
   const { properties, loading, error } = useProperties();
   const { toast } = useToast();
 
@@ -214,23 +217,49 @@ const AllProperties = () => {
           hasSavedPreferences={hasSavedPreferences}
         />
 
-        {/* Results Count */}
-        <div className="my-6">
+        {/* View Toggle and Results Count */}
+        <div className="my-6 flex justify-between items-center">
           <p className="text-muted-foreground text-lg">
             {filteredAndSortedProperties.length} bien{filteredAndSortedProperties.length !== 1 ? 's' : ''} trouvé{filteredAndSortedProperties.length !== 1 ? 's' : ''}
           </p>
+
+          {/* View Mode Toggle */}
+          <div className="flex gap-2">
+            <Button
+              variant={viewMode === 'grid' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('grid')}
+              className="gap-2"
+            >
+              <Grid3x3 className="w-4 h-4" />
+              Grille
+            </Button>
+            <Button
+              variant={viewMode === 'map' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('map')}
+              className="gap-2"
+            >
+              <MapIcon className="w-4 h-4" />
+              Carte
+            </Button>
+          </div>
         </div>
 
-        {/* Properties Grid */}
+        {/* Content - Grid or Map View */}
         {filteredAndSortedProperties.length > 0 ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredAndSortedProperties.map((property) => (
-              <PropertyCard
-                key={property.id}
-                {...property}
-              />
-            ))}
-          </div>
+          viewMode === 'grid' ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredAndSortedProperties.map((property) => (
+                <PropertyCard
+                  key={property.id}
+                  {...property}
+                />
+              ))}
+            </div>
+          ) : (
+            <PropertyMap properties={filteredAndSortedProperties} />
+          )
         ) : (
           <div className="text-center py-12">
             <p className="text-muted-foreground text-lg">

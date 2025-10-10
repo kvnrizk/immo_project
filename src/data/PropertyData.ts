@@ -13,6 +13,10 @@ export interface Property {
   images?: string[];
   features?: string[];
   isActive?: boolean;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
 }
 
 export const properties: Property[] = [
@@ -31,7 +35,8 @@ export const properties: Property[] = [
       "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=800&q=80",
       "https://images.unsplash.com/photo-1585128792020-803d29415281?auto=format&fit=crop&w=800&q=80"
     ],
-    features: ["Balcon 8m²", "Cave", "Exposition Sud", "Proche métro", "Cuisine équipée", "Dressing"]
+    features: ["Balcon 8m²", "Cave", "Exposition Sud", "Proche métro", "Cuisine équipée", "Dressing"],
+    coordinates: { lat: 45.7701, lng: 4.8522 }
   },
   {
     id: 2,
@@ -48,7 +53,8 @@ export const properties: Property[] = [
       "https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=800&q=80",
       "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=800&q=80"
     ],
-    features: ["Jardin 300m²", "Garage", "Terrasse", "Barbecue", "Parking privé", "Cuisine équipée"]
+    features: ["Jardin 300m²", "Garage", "Terrasse", "Barbecue", "Parking privé", "Cuisine équipée"],
+    coordinates: { lat: 45.7665, lng: 4.8800 }
   },
   {
     id: 3,
@@ -65,7 +71,8 @@ export const properties: Property[] = [
       "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80",
       "https://images.unsplash.com/photo-1564540574859-0dfb63293365?auto=format&fit=crop&w=800&q=80"
     ],
-    features: ["Wifi haut débit", "Ascenseur", "Kitchenette", "3ème étage", "Centre-ville", "Meublé"]
+    features: ["Wifi haut débit", "Ascenseur", "Kitchenette", "3ème étage", "Centre-ville", "Meublé"],
+    coordinates: { lat: 45.7578, lng: 4.8320 }
   },
   {
     id: 4,
@@ -80,7 +87,8 @@ export const properties: Property[] = [
     images: [
       "https://images.unsplash.com/photo-1487958449943-2429e8be8625?auto=format&fit=crop&w=800&q=80"
     ],
-    features: ["Vue exceptionnelle", "Loft industriel", "Quartier en expansion"]
+    features: ["Vue exceptionnelle", "Loft industriel", "Quartier en expansion"],
+    coordinates: { lat: 45.7348, lng: 4.8320 }
   },
   {
     id: 5,
@@ -95,7 +103,8 @@ export const properties: Property[] = [
     images: [
       "https://images.unsplash.com/photo-1551038247-3d9af20df552?auto=format&fit=crop&w=800&q=80"
     ],
-    features: ["Balcon", "Vue dégagée", "Parking", "Résidence récente"]
+    features: ["Balcon", "Vue dégagée", "Parking", "Résidence récente"],
+    coordinates: { lat: 45.7976, lng: 4.8500 }
   },
   {
     id: 6,
@@ -112,7 +121,8 @@ export const properties: Property[] = [
       "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80",
       "https://images.unsplash.com/photo-1560472354-b43ff0c44a43?auto=format&fit=crop&w=800&q=80"
     ],
-    features: ["Vieux Lyon", "Caractère authentique", "Décoration raffinée", "Centre historique", "Pierres apparentes", "Poutres en bois"]
+    features: ["Vieux Lyon", "Caractère authentique", "Décoration raffinée", "Centre historique", "Pierres apparentes", "Poutres en bois"],
+    coordinates: { lat: 45.7614, lng: 4.8268 }
   }
 ];
 
