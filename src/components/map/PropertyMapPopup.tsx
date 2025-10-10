@@ -49,7 +49,7 @@ const PropertyMapPopup: React.FC<PropertyMapPopupProps> = ({ property }) => {
     : property.image;
 
   return (
-    <div className="w-80 bg-background rounded-lg overflow-hidden shadow-lg">
+    <div className="w-96 bg-background rounded-lg overflow-hidden shadow-lg">
       {/* Image */}
       <div className="relative h-48">
         <img
@@ -91,14 +91,14 @@ const PropertyMapPopup: React.FC<PropertyMapPopupProps> = ({ property }) => {
         </div>
 
         {/* Price and button */}
-        <div className="flex items-center justify-between pt-2 border-t">
-          <div className="text-xl font-bold text-primary whitespace-nowrap">
+        <div className="flex items-center justify-between gap-3 pt-2 border-t">
+          <div className="text-xl font-bold text-primary whitespace-nowrap flex-shrink-0">
             {property.price}
           </div>
           <Button
             onClick={handleViewDetails}
             size="sm"
-            className="bg-primary hover:bg-primary/90"
+            className="bg-primary hover:bg-primary/90 flex-shrink-0"
           >
             Voir plus
           </Button>
