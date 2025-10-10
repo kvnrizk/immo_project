@@ -35,13 +35,28 @@ const PropertyMap: React.FC<PropertyMapProps> = ({ properties }) => {
     }
   };
 
+  const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
+
+  if (!mapboxToken) {
+    return (
+      <div className="w-full h-[600px] rounded-lg overflow-hidden border flex items-center justify-center bg-muted">
+        <div className="text-center p-8">
+          <p className="text-lg font-semibold mb-2">Configuration requise</p>
+          <p className="text-sm text-muted-foreground">
+            La clé API Mapbox n'est pas configurée.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full h-[600px] rounded-lg overflow-hidden border">
+    <div className="relative w-full h-[600px] rounded-lg overflow-hidden border">
       <Map
         {...viewState}
         onMove={evt => setViewState(evt.viewState)}
         mapStyle="mapbox://styles/mapbox/streets-v12"
-        mapboxAccessToken={import.meta.env.VITE_MAPBOX_TOKEN || ''}
+        mapboxAccessToken={mapboxToken}
       >
         {/* Controls */}
         <NavigationControl position="top-right" />
