@@ -21,21 +21,6 @@ const PropertyMap: React.FC<PropertyMapProps> = ({ properties }) => {
     return properties.filter(property => property.coordinates);
   }, [properties]);
 
-  // Calculate bounds to fit all properties
-  const bounds = useMemo(() => {
-    if (mappableProperties.length === 0) return null;
-
-    const lats = mappableProperties.map(p => p.coordinates!.lat);
-    const lngs = mappableProperties.map(p => p.coordinates!.lng);
-
-    return {
-      minLat: Math.min(...lats),
-      maxLat: Math.max(...lats),
-      minLng: Math.min(...lngs),
-      maxLng: Math.max(...lngs),
-    };
-  }, [mappableProperties]);
-
   // Get marker color based on property type
   const getMarkerColor = (type: string) => {
     switch (type) {
