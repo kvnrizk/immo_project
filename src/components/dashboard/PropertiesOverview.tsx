@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Power, PowerOff, Calendar, MapPin, Bed, Square, Trash2 } from 'lucide-react';
+import { Edit, Power, PowerOff, Calendar, MapPin, Bed, Square, Trash2, Plus } from 'lucide-react';
 import { propertyAPI } from '@/services/api';
 import { Property } from '@/data/PropertyData';
 import { useToast } from '@/hooks/use-toast';
@@ -13,9 +13,10 @@ import { getImageUrl } from '@/utils/imageUrl';
 interface PropertiesOverviewProps {
   onSelectProperty: (property: Property) => void;
   onEditProperty: (property: Property) => void;
+  onAddProperty: () => void;
 }
 
-const PropertiesOverview = ({ onSelectProperty, onEditProperty }: PropertiesOverviewProps) => {
+const PropertiesOverview = ({ onSelectProperty, onEditProperty, onAddProperty }: PropertiesOverviewProps) => {
   const { toast } = useToast();
 
   // Use React Query for properties with cache invalidation support
@@ -91,6 +92,19 @@ const PropertiesOverview = ({ onSelectProperty, onEditProperty }: PropertiesOver
 
   return (
     <div className="space-y-6">
+      {/* Header with Add Property Button */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold">Mes Propriétés</h2>
+          <p className="text-sm text-muted-foreground mt-1">Gérez vos biens immobiliers</p>
+        </div>
+        <Button onClick={onAddProperty} className="flex items-center gap-2">
+          <Plus className="w-4 h-4" />
+          <span className="hidden sm:inline">Nouvelle propriété</span>
+          <span className="sm:hidden">Nouveau</span>
+        </Button>
+      </div>
+
       {/* Stats Cards - Mobile Optimized */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <Card className="hover:shadow-md transition-shadow">

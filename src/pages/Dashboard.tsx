@@ -26,6 +26,11 @@ const Dashboard = () => {
     localStorage.setItem('dashboardActiveView', activeView);
   }, [activeView]);
 
+  const handleAddProperty = () => {
+    setEditingProperty(null);
+    setActiveView('add-property');
+  };
+
   const handleEditProperty = (property) => {
     setEditingProperty(property);
     setActiveView('add-property');
@@ -45,7 +50,7 @@ const Dashboard = () => {
   const renderActiveView = () => {
     switch (activeView) {
       case 'overview':
-        return <PropertiesOverview key={refreshKey} onSelectProperty={setSelectedProperty} onEditProperty={handleEditProperty} />;
+        return <PropertiesOverview key={refreshKey} onSelectProperty={setSelectedProperty} onEditProperty={handleEditProperty} onAddProperty={handleAddProperty} />;
       case 'calendar':
         return <CalendarManagement />;
       case 'bookings':
@@ -61,7 +66,7 @@ const Dashboard = () => {
       case 'settings':
         return <Settings />;
       default:
-        return <PropertiesOverview key={refreshKey} onSelectProperty={setSelectedProperty} onEditProperty={handleEditProperty} />;
+        return <PropertiesOverview key={refreshKey} onSelectProperty={setSelectedProperty} onEditProperty={handleEditProperty} onAddProperty={handleAddProperty} />;
     }
   };
 
