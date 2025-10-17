@@ -7,7 +7,9 @@
       "Bash(npm uninstall:*)",
       "Bash(npx tsc:*)",
       "mcp__ide__getDiagnostics",
-      "Read(//c/Users/kevin/Desktop/Projects/main_immo/**)"
+      "Read(//c/Users/kevin/Desktop/Projects/main_immo/**)",
+      "Bash(test:*)",
+      "Bash(npx tsx:*)"
     ],
     "deny": [],
     "ask": []
