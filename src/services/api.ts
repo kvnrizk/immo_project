@@ -2,6 +2,18 @@ import { Property } from '@/data/PropertyData';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
+// Helper function to handle API errors
+const handleApiError = async (response: Response) => {
+  if (response.status === 401) {
+    // Token is invalid or expired - clear auth and redirect to login
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '/login';
+    throw new Error('Session expirée. Veuillez vous reconnecter.');
+  }
+  return response;
+};
+
 // Properties API
 export const propertyAPI = {
   // Get all properties
@@ -43,6 +55,7 @@ export const propertyAPI = {
       credentials: 'include',
       body: JSON.stringify(property),
     });
+    await handleApiError(response);
     if (!response.ok) throw new Error('Failed to create property');
     return response.json();
   },
@@ -59,6 +72,7 @@ export const propertyAPI = {
       credentials: 'include',
       body: JSON.stringify(property),
     });
+    await handleApiError(response);
     if (!response.ok) throw new Error('Failed to update property');
     return response.json();
   },
@@ -72,6 +86,7 @@ export const propertyAPI = {
         'Authorization': `Bearer ${token}`,
       },
     });
+    await handleApiError(response);
     if (!response.ok) throw new Error('Failed to delete property');
   },
 
@@ -91,6 +106,7 @@ export const propertyAPI = {
       credentials: 'include',
       body: formData,
     });
+    await handleApiError(response);
     if (!response.ok) throw new Error('Failed to upload images');
     return response.json();
   },
@@ -105,6 +121,7 @@ export const propertyAPI = {
       },
       credentials: 'include',
     });
+    await handleApiError(response);
     if (!response.ok) throw new Error('Failed to toggle property status');
     return response.json();
   },
@@ -121,6 +138,7 @@ export const propertyAPI = {
       credentials: 'include',
       body: JSON.stringify({ imageUrl }),
     });
+    await handleApiError(response);
     if (!response.ok) throw new Error('Failed to delete image');
     return response.json();
   },
@@ -137,6 +155,7 @@ export const propertyAPI = {
       credentials: 'include',
       body: JSON.stringify({ imageUrls }),
     });
+    await handleApiError(response);
     if (!response.ok) throw new Error('Failed to reorder images');
     return response.json();
   },
@@ -164,6 +183,7 @@ export const contactAPI = {
       },
       credentials: 'include',
     });
+    await handleApiError(response);
     if (!response.ok) throw new Error('Failed to fetch contacts');
     return response.json();
   },
@@ -180,6 +200,7 @@ export const contactAPI = {
       credentials: 'include',
       body: JSON.stringify({ status }),
     });
+    await handleApiError(response);
     if (!response.ok) throw new Error('Failed to update contact status');
     return response.json();
   },
@@ -326,6 +347,7 @@ export const reservationAPI = {
       },
       credentials: 'include',
     });
+    await handleApiError(response);
     if (!response.ok) throw new Error('Failed to fetch reservations');
     return response.json();
   },
@@ -338,6 +360,7 @@ export const reservationAPI = {
         'Authorization': `Bearer ${token}`,
       },
     });
+    await handleApiError(response);
     if (!response.ok) throw new Error('Failed to fetch reservation');
     return response.json();
   },
@@ -350,6 +373,7 @@ export const reservationAPI = {
         'Authorization': `Bearer ${token}`,
       },
     });
+    await handleApiError(response);
     if (!response.ok) throw new Error('Failed to fetch reservation statistics');
     return response.json();
   },
@@ -366,6 +390,7 @@ export const reservationAPI = {
       credentials: 'include',
       body: JSON.stringify(data),
     });
+    await handleApiError(response);
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Unauthorized');
@@ -385,6 +410,7 @@ export const reservationAPI = {
       credentials: 'include',
       body: JSON.stringify(data),
     });
+    await handleApiError(response);
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to update reservation');
@@ -402,6 +428,7 @@ export const reservationAPI = {
       },
       credentials: 'include',
     });
+    await handleApiError(response);
     if (!response.ok) throw new Error('Failed to delete reservation');
   },
   // Get available time slots for a property on a specific date
@@ -413,6 +440,7 @@ export const reservationAPI = {
       },
       credentials: 'include',
     });
+    await handleApiError(response);
     if (!response.ok) throw new Error('Failed to fetch available time slots');
     return response.json();
   },
@@ -504,6 +532,7 @@ export const availabilityAPI = {
       },
       credentials: 'include',
     });
+    await handleApiError(response);
     if (!response.ok) throw new Error('Failed to fetch availability');
     return response.json();
   },
@@ -520,6 +549,7 @@ export const availabilityAPI = {
       credentials: 'include',
       body: JSON.stringify(data),
     });
+    await handleApiError(response);
     if (!response.ok) throw new Error('Failed to create availability');
     return response.json();
   },
@@ -536,6 +566,7 @@ export const availabilityAPI = {
       credentials: 'include',
       body: JSON.stringify(data),
     });
+    await handleApiError(response);
     if (!response.ok) throw new Error('Failed to update availability');
     return response.json();
   },
@@ -550,6 +581,7 @@ export const availabilityAPI = {
       },
       credentials: 'include',
     });
+    await handleApiError(response);
     if (!response.ok) throw new Error('Failed to delete availability');
   },
 
@@ -562,6 +594,7 @@ export const availabilityAPI = {
       },
       credentials: 'include',
     });
+    await handleApiError(response);
     if (!response.ok) throw new Error('Failed to fetch unavailable dates');
     return response.json();
   },
@@ -578,6 +611,7 @@ export const availabilityAPI = {
       credentials: 'include',
       body: JSON.stringify(data),
     });
+    await handleApiError(response);
     if (!response.ok) throw new Error('Failed to create unavailable date');
     return response.json();
   },
@@ -592,6 +626,7 @@ export const availabilityAPI = {
       },
       credentials: 'include',
     });
+    await handleApiError(response);
     if (!response.ok) throw new Error('Failed to delete unavailable date');
   },
 };
@@ -664,6 +699,7 @@ export const analyticsAPI = {
         'Authorization': `Bearer ${token}`,
       },
     });
+    await handleApiError(response);
     if (!response.ok) throw new Error('Failed to fetch analytics');
     return response.json();
   },
