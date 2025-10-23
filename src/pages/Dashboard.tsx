@@ -50,7 +50,7 @@ const Dashboard = () => {
   const renderActiveView = () => {
     switch (activeView) {
       case 'overview':
-        return <PropertiesOverview key={refreshKey} onSelectProperty={setSelectedProperty} onEditProperty={handleEditProperty} onAddProperty={handleAddProperty} />;
+        return <PropertiesOverview key={refreshKey} onSelectProperty={setSelectedProperty} onEditProperty={handleEditProperty} />;
       case 'calendar':
         return <CalendarManagement />;
       case 'bookings':
@@ -66,7 +66,7 @@ const Dashboard = () => {
       case 'settings':
         return <Settings />;
       default:
-        return <PropertiesOverview key={refreshKey} onSelectProperty={setSelectedProperty} onEditProperty={handleEditProperty} onAddProperty={handleAddProperty} />;
+        return <PropertiesOverview key={refreshKey} onSelectProperty={setSelectedProperty} onEditProperty={handleEditProperty} />;
     }
   };
 
@@ -90,7 +90,7 @@ const Dashboard = () => {
           </button>
 
           <div className="flex-1 p-4 md:p-6 pt-20 md:pt-6">
-            {activeView === 'overview' && <DashboardHeader activeView={activeView} />}
+            {activeView === 'overview' && <DashboardHeader activeView={activeView} onAddProperty={handleAddProperty} />}
             <div className={activeView === 'overview' ? 'mt-6' : ''}>
               {renderActiveView()}
             </div>
